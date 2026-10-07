@@ -1,0 +1,224 @@
+{
+ "ticks": [
+  {
+   "line": "CSPX",
+   "symbol": "CSPX.L",
+   "currency": "USD",
+   "tick_inferred": 0.01,
+   "on_grid_share": 0.9831609972941632,
+   "tick_config": 0.01,
+   "n_prices": 41392,
+   "median_price": 828.8699951171875
+  },
+  {
+   "line": "VUAA",
+   "symbol": "VUAA.L",
+   "currency": "USD",
+   "tick_inferred": 0.02,
+   "on_grid_share": 0.9683269608349695,
+   "tick_config": 0.02,
+   "n_prices": 38708,
+   "median_price": 148.63999938964844
+  },
+  {
+   "line": "VUSA",
+   "symbol": "VUSA.L",
+   "currency": "GBP",
+   "tick_inferred": 0.0025,
+   "on_grid_share": 0.9450065579913809,
+   "tick_config": 0.0025,
+   "n_prices": 42696,
+   "median_price": 109.80999755859375
+  },
+  {
+   "line": "SXR8",
+   "symbol": "SXR8.DE",
+   "currency": "EUR",
+   "tick_inferred": 0.02,
+   "on_grid_share": 1.0,
+   "tick_config": 0.02,
+   "n_prices": 29780,
+   "median_price": 730.260009765625
+  }
+ ],
+ "session_grids": {
+  "CSPX": {
+   "days": 21,
+   "first_print_mode": "08:00",
+   "last_print_mode": "16:29",
+   "prints_per_day_median": 494.0,
+   "prints_per_day_min": 466
+  },
+  "VUAA": {
+   "days": 21,
+   "first_print_mode": "08:00",
+   "last_print_mode": "16:29",
+   "prints_per_day_median": 460.0,
+   "prints_per_day_min": 436
+  },
+  "VUSA": {
+   "days": 21,
+   "first_print_mode": "08:00",
+   "last_print_mode": "16:29",
+   "prints_per_day_median": 508.0,
+   "prints_per_day_min": 507
+  },
+  "SXR8": {
+   "days": 21,
+   "first_print_mode": "09:05",
+   "last_print_mode": "17:29",
+   "prints_per_day_median": 352.0,
+   "prints_per_day_min": 266
+  }
+ },
+ "es_grid": {
+  "days": 26,
+  "first_print_mode": "00:09",
+  "last_print_mode": "23:58",
+  "prints_per_day_median": 1370.0,
+  "prints_per_day_min": 349
+ },
+ "issuer_status": {
+  "checked": "2026-10-07T23:00:04+00:00",
+  "attempts": [
+   {
+    "source": "iShares",
+    "name": "CSPX_nav",
+    "url": "https://www.blackrock.com/varnish-api/uk-retail01-product-data/product-data/api/v2/get-product-data?...&portfolioId=253743&component=performance",
+    "result": "ok 4170 rows",
+    "file": "data/reference/issuer/CSPX_nav.parquet",
+    "first": "2010-05-19",
+    "last": "2026-10-06",
+    "last_nav": 843.548046
+   },
+   {
+    "source": "iShares",
+    "name": "CSPX_keyfacts",
+    "url": "https://www.blackrock.com/varnish-api/uk-retail01-product-data/product-data/api/v2/get-product-data?...&portfolioId=253743&component=keyFundFacts",
+    "result": "ok",
+    "file": "data/reference/issuer/CSPX_keyfacts.json",
+    "ter": "0.07%",
+    "shares_outstanding": "187,741,982"
+   },
+   {
+    "source": "Vanguard",
+    "name": "VUSA_page_nav",
+    "url": "https://www.vanguard.co.uk/professional/product/etf/equity/9503/sp-500-ucits-etf-usd-distributing",
+    "result": "ok 4 rows",
+    "file": "data/reference/issuer/VUSA_page_nav.parquet",
+    "last": "2026-10-06",
+    "last_nav_usd": 148.13
+   },
+   {
+    "source": "Vanguard",
+    "name": "VUAA_page_nav",
+    "url": "https://www.vanguard.co.uk/professional/product/etf/equity/9694/sp-500-ucits-etf",
+    "result": "ok 5 rows",
+    "file": "data/reference/issuer/VUAA_page_nav.parquet",
+    "last": "2026-10-07",
+    "last_nav_usd": 150.93
+   }
+  ]
+ },
+ "lines": {
+  "CSPX": {
+   "yahoo": "CSPX.L",
+   "isin": "IE00B5BMR087",
+   "issuer": "iShares",
+   "fund": "iShares Core S&P 500 UCITS ETF USD (Acc)",
+   "venue": "LSE",
+   "currency": "USD",
+   "distributing": false,
+   "ter_bp": 7,
+   "tz": "Europe/London",
+   "tick": 0.01,
+   "creation_unit_shares": 50000,
+   "creation_unit_published": false,
+   "nav_file": "CSPX_nav"
+  },
+  "VUAA": {
+   "yahoo": "VUAA.L",
+   "isin": "IE00BFMXXD54",
+   "issuer": "Vanguard",
+   "fund": "Vanguard S&P 500 UCITS ETF (USD) Accumulating",
+   "venue": "LSE",
+   "currency": "USD",
+   "distributing": false,
+   "ter_bp": 7,
+   "tz": "Europe/London",
+   "tick": 0.02,
+   "creation_unit_shares": 60000,
+   "creation_unit_published": true,
+   "nav_file": "VUAA_page_nav"
+  },
+  "VUSA": {
+   "yahoo": "VUSA.L",
+   "isin": "IE00B3XXRP09",
+   "issuer": "Vanguard",
+   "fund": "Vanguard S&P 500 UCITS ETF (USD) Distributing",
+   "venue": "LSE",
+   "currency": "GBP",
+   "distributing": true,
+   "ter_bp": 7,
+   "tz": "Europe/London",
+   "tick": 0.0025,
+   "creation_unit_shares": 60000,
+   "creation_unit_published": true,
+   "nav_file": "VUSA_page_nav"
+  },
+  "SXR8": {
+   "yahoo": "SXR8.DE",
+   "isin": "IE00B5BMR087",
+   "issuer": "iShares",
+   "fund": "iShares Core S&P 500 UCITS ETF USD (Acc)",
+   "venue": "Xetra",
+   "currency": "EUR",
+   "distributing": false,
+   "ter_bp": 7,
+   "tz": "Europe/Berlin",
+   "tick": 0.02,
+   "creation_unit_shares": 50000,
+   "creation_unit_published": false,
+   "nav_file": "CSPX_nav"
+  }
+ },
+ "sessions": {
+  "LSE": {
+   "tz": "Europe/London",
+   "open": "08:00",
+   "close": "16:30",
+   "close_auction_end": "16:35"
+  },
+  "Xetra": {
+   "tz": "Europe/Berlin",
+   "open": "09:00",
+   "close": "17:30",
+   "close_auction_end": "17:35"
+  },
+  "CME": {
+   "tz": "America/New_York",
+   "open": "18:00",
+   "close": "17:00",
+   "maintenance": [
+    "17:00",
+    "18:00"
+   ]
+  }
+ },
+ "bars_1m": {
+  "rows": 155307,
+  "first": "2026-09-08 17:54:00+00:00",
+  "last": "2026-10-07 16:53:53+00:00",
+  "symbols": [
+   "CSPX.L",
+   "ES=F",
+   "EURUSD=X",
+   "GBPUSD=X",
+   "SPY",
+   "SXR8.DE",
+   "VUAA.L",
+   "VUSA.L",
+   "^GSPC"
+  ]
+ }
+}

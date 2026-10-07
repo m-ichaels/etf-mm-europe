@@ -46,7 +46,8 @@
     "flatten_half_spread_bp": 5,
     "fx_hedge_minutes_before_close": 6,
     "track_es": false,
-    "recentre_halflife_min": 0
+    "recentre_halflife_min": 0,
+    "fx_hedge": "daily"
   },
   "sensitivity": {
     "through_ticks": [
@@ -74,6 +75,9 @@
     ],
     "track_es": [
       true
+    ],
+    "fx_hedge": [
+      "fill"
     ]
   },
   "bound": {
@@ -113,7 +117,7 @@
   "monitor": {
     "position_limit_clips": 6,
     "delta_limit_clips": 0.75,
-    "delta_persist_bars": 3,
+    "delta_persist_bars": 4,
     "fx_exposure_limit_usd": 2000000,
     "stale_minutes": 3,
     "stuck_quote_bp": 10,

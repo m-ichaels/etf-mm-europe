@@ -6,5 +6,4 @@ build/
 data/download.log
 data/download_*_stdout.log
 data/download_stdout.log
-data/reference/issuer_old/
 results/*.log

@@ -36,7 +36,7 @@ def test_bootstrap_curve_recovers_the_point_estimate_and_is_reproducible():
     for d in range(20):
         for h in (1.0, 2.0, 3.0, 4.0):
             notional = 1e6
-            rows.append({"date": f"d{d:02d}", "h": h, "pnl_usd": notional * (h - 2.5) / 1e4 + rng.normal(0, 20), "notional_usd": notional})
+            rows.append({"date": f"d{d:02d}", "h": h, "pnl_usd": notional * (h - 2.5) / 1e4 + rng.normal(0, 20), "notional_usd": notional, "n_fills": 5})
     daily = pd.DataFrame(rows)
     r1 = S.bootstrap_curve(daily, [1.0, 2.0, 3.0, 4.0], n_boot=200, block=3, seed=0, base_h=3.0)
     r2 = S.bootstrap_curve(daily, [1.0, 2.0, 3.0, 4.0], n_boot=200, block=3, seed=0, base_h=3.0)
@@ -44,6 +44,9 @@ def test_bootstrap_curve_recovers_the_point_estimate_and_is_reproducible():
     assert abs(r1["breakeven_bp"] - 2.5) < 0.1
     assert r1["breakeven_lo"] <= r1["breakeven_bp"] <= r1["breakeven_hi"]
     assert abs(r1["base_pnl_bp"] - 0.5) < 0.1
+    # a grid point with too few fills over the sample carries no estimate
+    r3 = S.bootstrap_curve(daily.assign(n_fills=np.where(daily.h == 1.0, 0, 5)), [1.0, 2.0, 3.0, 4.0], n_boot=50, block=3, seed=0)
+    assert np.isnan(r3["pnl_bp"][0]) and r3["h_with_enough_fills"] == [2.0, 3.0, 4.0]
 
 
 def test_tick_inference_on_noisy_float32_prices():

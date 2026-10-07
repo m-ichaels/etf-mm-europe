@@ -1,0 +1,351 @@
+{
+ "by_fault": [
+  {
+   "fault": "bad_es_price",
+   "n": 32,
+   "detection_rate": 0.90625,
+   "median_delay_min": 0.0
+  },
+  {
+   "fault": "drawdown",
+   "n": 32,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "fault": "fat_finger",
+   "n": 32,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "fault": "fx_spike",
+   "n": 16,
+   "detection_rate": 0.8125,
+   "median_delay_min": 0.0
+  },
+  {
+   "fault": "fx_unhedged",
+   "n": 16,
+   "detection_rate": 0.9375,
+   "median_delay_min": 0.0
+  },
+  {
+   "fault": "hedge_dropped",
+   "n": 32,
+   "detection_rate": 0.71875,
+   "median_delay_min": 3.0
+  },
+  {
+   "fault": "phantom_fill",
+   "n": 32,
+   "detection_rate": 1.0,
+   "median_delay_min": 3.0
+  },
+  {
+   "fault": "stale_feed",
+   "n": 32,
+   "detection_rate": 1.0,
+   "median_delay_min": 2.0
+  },
+  {
+   "fault": "wrong_side_hedge",
+   "n": 32,
+   "detection_rate": 0.78125,
+   "median_delay_min": 3.0
+  }
+ ],
+ "by_line_fault": [
+  {
+   "line": "CSPX",
+   "fault": "bad_es_price",
+   "n": 8,
+   "caught": 7,
+   "detection_rate": 0.875,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "CSPX",
+   "fault": "drawdown",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "CSPX",
+   "fault": "fat_finger",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "CSPX",
+   "fault": "hedge_dropped",
+   "n": 8,
+   "caught": 7,
+   "detection_rate": 0.875,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "CSPX",
+   "fault": "phantom_fill",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "CSPX",
+   "fault": "stale_feed",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 2.0
+  },
+  {
+   "line": "CSPX",
+   "fault": "wrong_side_hedge",
+   "n": 8,
+   "caught": 6,
+   "detection_rate": 0.75,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "SXR8",
+   "fault": "bad_es_price",
+   "n": 8,
+   "caught": 6,
+   "detection_rate": 0.75,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "SXR8",
+   "fault": "drawdown",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "SXR8",
+   "fault": "fat_finger",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "SXR8",
+   "fault": "fx_spike",
+   "n": 8,
+   "caught": 5,
+   "detection_rate": 0.625,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "SXR8",
+   "fault": "fx_unhedged",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "SXR8",
+   "fault": "hedge_dropped",
+   "n": 8,
+   "caught": 6,
+   "detection_rate": 0.75,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "SXR8",
+   "fault": "phantom_fill",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "SXR8",
+   "fault": "stale_feed",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 2.0
+  },
+  {
+   "line": "SXR8",
+   "fault": "wrong_side_hedge",
+   "n": 8,
+   "caught": 7,
+   "detection_rate": 0.875,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "VUAA",
+   "fault": "bad_es_price",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "VUAA",
+   "fault": "drawdown",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "VUAA",
+   "fault": "fat_finger",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "VUAA",
+   "fault": "hedge_dropped",
+   "n": 8,
+   "caught": 7,
+   "detection_rate": 0.875,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "VUAA",
+   "fault": "phantom_fill",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "VUAA",
+   "fault": "stale_feed",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 2.0
+  },
+  {
+   "line": "VUAA",
+   "fault": "wrong_side_hedge",
+   "n": 8,
+   "caught": 7,
+   "detection_rate": 0.875,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "VUSA",
+   "fault": "bad_es_price",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "VUSA",
+   "fault": "drawdown",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "VUSA",
+   "fault": "fat_finger",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "VUSA",
+   "fault": "fx_spike",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "VUSA",
+   "fault": "fx_unhedged",
+   "n": 8,
+   "caught": 7,
+   "detection_rate": 0.875,
+   "median_delay_min": 0.0
+  },
+  {
+   "line": "VUSA",
+   "fault": "hedge_dropped",
+   "n": 8,
+   "caught": 3,
+   "detection_rate": 0.375,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "VUSA",
+   "fault": "phantom_fill",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 3.0
+  },
+  {
+   "line": "VUSA",
+   "fault": "stale_feed",
+   "n": 8,
+   "caught": 8,
+   "detection_rate": 1.0,
+   "median_delay_min": 2.0
+  },
+  {
+   "line": "VUSA",
+   "fault": "wrong_side_hedge",
+   "n": 8,
+   "caught": 5,
+   "detection_rate": 0.625,
+   "median_delay_min": 14.0
+  }
+ ],
+ "overall_detection_rate": 0.91015625,
+ "n_injections": 256,
+ "clean_days": 80,
+ "clean_alerts": 21,
+ "clean_alerts_per_day": 0.2625,
+ "clean_alerts_by_rule": {
+  "DELTA_UNHEDGED": 16,
+  "FX_EXPOSURE": 5
+ },
+ "example_day": "2026-10-07",
+ "example_line": "CSPX",
+ "example_alerts": [],
+ "example_table_extremes": {
+  "max_abs_position_clips": 2.259656652360515,
+  "max_abs_delta_clips": 2.3999085845132773,
+  "max_abs_fx_exposure_usd": 0.0,
+  "net_flow_end": 154.0,
+  "bought": 4761.0,
+  "sold": 4607.0,
+  "pnl_day_usd": -1216.9821171912045
+ },
+ "limits": {
+  "position_limit_clips": 6,
+  "delta_limit_clips": 0.75,
+  "delta_persist_bars": 4,
+  "fx_exposure_limit_usd": 2000000,
+  "stale_minutes": 3,
+  "stuck_quote_bp": 10,
+  "hedge_slip_bp": 10,
+  "premium_band_bp": 40,
+  "fat_finger_clips": 3,
+  "drawdown_usd": 25000,
+  "detect_window_minutes": 15
+ },
+ "seconds": 48.2
+}

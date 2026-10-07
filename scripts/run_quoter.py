@@ -53,6 +53,7 @@ def cases(params: dict) -> dict:
     for v in s.get("track_es", []):
         out["quotes_track_es"] = {"track_es": bool(v)}
     out["quotes_track_es+recentre"] = {"track_es": True, "recentre_halflife_min": 30}
+    out["fx_hedge=fill"] = {"fx_hedge": "fill"}
     return out
 
 
@@ -76,6 +77,8 @@ def main(argv):
                 continue
             if case == "kappa=nav" and frame.nav_fair.notna().sum() < 0.5 * frame.fair.notna().sum():
                 continue  # the issuer NAV covers too few days of this line
+            if case == "fx_hedge=fill" and cfg["currency"] == "USD":
+                continue  # no FX leg
             p0 = Q.QuoterParams.from_params(params, cfg, redeem_cost_bp=redeem_bp, **over)
             arrays = Q.prepare(frame, p0)
             for h in grid:

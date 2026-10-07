@@ -22,7 +22,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-RULE_FOR_FAULT = {"stale_feed": ["STALE_INPUT", "STUCK_QUOTE"], "hedge_dropped": ["DELTA_UNHEDGED"], "wrong_side_hedge": ["DELTA_UNHEDGED"],
+RULE_FOR_FAULT = {"stale_feed": ["STALE_INPUT", "STUCK_QUOTE"], "hedge_dropped": ["DELTA_UNHEDGED"], "wrong_side_hedge": ["DELTA_UNHEDGED"],  # the hedge channel down for 15 min
                   "phantom_fill": ["RECON", "DELTA_UNHEDGED"], "bad_es_price": ["PREMIUM_BAND"], "fx_spike": ["PREMIUM_BAND", "FX_EXPOSURE"],
                   "fat_finger": ["FAT_FINGER", "POSITION_LIMIT"], "drawdown": ["DRAWDOWN"], "fx_unhedged": ["FX_EXPOSURE"]}
 FAULTS = list(RULE_FOR_FAULT)
@@ -138,15 +138,21 @@ def inject(path: pd.DataFrame, fills: pd.DataFrame, hedges: pd.DataFrame, fault:
         true_fair = P.fair.iloc[t0 - 1] * (1 + 15e-4) if t0 > 0 else P.fair.iloc[t0] * (1 + 15e-4)
         P.loc[min(n - 1, t0 + 11), "fair"] = true_fair
     elif fault in ("hedge_dropped", "wrong_side_hedge"):
-        hh = h[h.ts >= P.ts.iloc[t0]]
-        if len(hh) == 0:  # no hedge after t0: plant one unhedged clip instead
-            P.loc[t0:, "q"] = P.q.iloc[t0:] + clip
+        # the hedge channel is down for 15 minutes: hedges in the window are dropped (or sent with the wrong sign); the first
+        # hedge after the window re-targets the whole position, as the quoter's target rule does
+        t_end = P.ts.iloc[t0] + pd.Timedelta(minutes=15)
+        hh = h[(h.ts >= P.ts.iloc[t0]) & (h.ts < t_end)]
+        if len(hh) == 0:  # a quiet window: one clip bought and left unhedged for the window
+            after = h[h.ts >= t_end]
+            j = int(P.ts.searchsorted(after.ts.iloc[0])) if len(after) else n
+            P.loc[t0:j - 1, "q"] = P.q.iloc[t0:j] + clip
         else:
-            r = hh.iloc[0]
-            i = int(P.ts.searchsorted(r.ts))
-            d_es = r.d_es if fault == "hedge_dropped" else 2 * r.d_es
-            P.loc[i:, "es"] = P.es.iloc[i:] - d_es
-            h = h[h.ts != r.ts] if fault == "hedge_dropped" else h.assign(d_es=np.where(h.ts == r.ts, -h.d_es, h.d_es))
+            after = h[h.ts >= t_end]
+            j = int(P.ts.searchsorted(after.ts.iloc[0])) if len(after) else n
+            shift = hh.d_es.sum() if fault == "hedge_dropped" else 2 * hh.d_es.sum()
+            i = int(P.ts.searchsorted(hh.ts.iloc[0]))
+            P.loc[i:j - 1, "es"] = P.es.iloc[i:j] - shift
+            h = h[~h.ts.isin(hh.ts)] if fault == "hedge_dropped" else h.assign(d_es=np.where(h.ts.isin(hh.ts), -h.d_es, h.d_es))
     elif fault == "phantom_fill":  # the position feed shows a buy that no quote produced
         P.loc[t0:, "q"] = P.q.iloc[t0:] + clip
     elif fault == "bad_es_price":  # one ES tick 1 % off

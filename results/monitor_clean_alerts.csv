@@ -1,0 +1,22 @@
+line,date,ts,rule,detail
+CSPX,2026-09-11,2026-09-11 14:04:00+00:00,DELTA_UNHEDGED,net delta +1.19 contracts for 4 bars
+CSPX,2026-09-11,2026-09-11 14:33:00+00:00,DELTA_UNHEDGED,net delta -0.82 contracts for 4 bars
+CSPX,2026-09-30,2026-09-30 13:46:00+00:00,DELTA_UNHEDGED,net delta +1.17 contracts for 4 bars
+CSPX,2026-10-02,2026-10-02 13:43:00+00:00,DELTA_UNHEDGED,net delta -1.16 contracts for 4 bars
+CSPX,2026-10-02,2026-10-02 14:30:00+00:00,DELTA_UNHEDGED,net delta +0.89 contracts for 4 bars
+CSPX,2026-10-06,2026-10-06 14:32:00+00:00,DELTA_UNHEDGED,net delta -0.98 contracts for 4 bars
+VUSA,2026-09-10,2026-09-10 14:07:00+00:00,DELTA_UNHEDGED,net delta -1.08 contracts for 4 bars
+VUSA,2026-09-14,2026-09-14 13:52:00+00:00,DELTA_UNHEDGED,net delta +1.08 contracts for 4 bars
+VUSA,2026-09-14,2026-09-14 14:38:00+00:00,DELTA_UNHEDGED,net delta -1.01 contracts for 4 bars
+VUSA,2026-09-24,2026-09-24 12:02:00+00:00,FX_EXPOSURE,unconverted cash +2.11m USD
+VUSA,2026-09-24,2026-09-24 12:17:00+00:00,FX_EXPOSURE,unconverted cash +2.09m USD
+VUSA,2026-09-28,2026-09-28 13:41:00+00:00,DELTA_UNHEDGED,net delta +0.92 contracts for 4 bars
+VUSA,2026-09-29,2026-09-29 13:30:00+00:00,FX_EXPOSURE,unconverted cash -2.21m USD
+VUSA,2026-09-29,2026-09-29 13:45:00+00:00,FX_EXPOSURE,unconverted cash -2.09m USD
+VUSA,2026-09-29,2026-09-29 14:00:00+00:00,FX_EXPOSURE,unconverted cash -2.23m USD
+VUSA,2026-09-30,2026-09-30 13:44:00+00:00,DELTA_UNHEDGED,net delta -0.77 contracts for 4 bars
+VUSA,2026-10-01,2026-10-01 14:05:00+00:00,DELTA_UNHEDGED,net delta -1.39 contracts for 4 bars
+VUSA,2026-10-02,2026-10-02 11:51:00+00:00,DELTA_UNHEDGED,net delta +1.22 contracts for 4 bars
+VUSA,2026-10-02,2026-10-02 13:19:00+00:00,DELTA_UNHEDGED,net delta +1.05 contracts for 4 bars
+VUSA,2026-10-05,2026-10-05 14:07:00+00:00,DELTA_UNHEDGED,net delta +0.96 contracts for 4 bars
+VUSA,2026-10-06,2026-10-06 14:00:00+00:00,DELTA_UNHEDGED,net delta +0.89 contracts for 4 bars

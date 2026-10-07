@@ -3,7 +3,7 @@ import pandas as pd
 
 from etfmm import monitor as M
 
-MP = {"position_limit_clips": 6, "delta_limit_clips": 0.75, "delta_persist_bars": 3, "fx_exposure_limit_usd": 2000000, "stale_minutes": 3, "stuck_quote_bp": 10,
+MP = {"position_limit_clips": 6, "delta_limit_clips": 0.75, "delta_persist_bars": 4, "fx_exposure_limit_usd": 2000000, "stale_minutes": 3, "stuck_quote_bp": 10,
       "hedge_slip_bp": 10, "premium_band_bp": 40, "fat_finger_clips": 3, "drawdown_usd": 25000, "detect_window_minutes": 15}
 
 

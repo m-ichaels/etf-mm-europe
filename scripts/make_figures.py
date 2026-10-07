@@ -112,13 +112,14 @@ def fig_sensitivity(lines):
     x = np.arange(len(cases))
     for i, name in enumerate(lines):
         v = s[s.line == name].set_index("case").reindex(cases)
-        y = v.breakeven_bp.replace(np.inf, np.nan).to_numpy()
-        lo = y - v.breakeven_lo.to_numpy()
-        hi = v.breakeven_hi.replace(np.inf, np.nan).to_numpy() - y
+        raw = v.breakeven_bp.to_numpy(float)
+        y = np.where(np.isfinite(raw), raw, np.nan)
+        lo = np.maximum(y - v.breakeven_lo.to_numpy(), 0)
+        hi = np.maximum(v.breakeven_hi.replace(np.inf, np.nan).to_numpy() - y, 0)
         ax.bar(x + i * w, np.nan_to_num(y, nan=0), w, color=COLORS[name], label=name, yerr=[np.nan_to_num(lo), np.nan_to_num(hi)], capsize=2, error_kw={"lw": 0.7})
-        for xi, yi in zip(x + i * w, y):
+        for xi, yi in zip(x + i * w, raw):
             if not np.isfinite(yi):
-                ax.text(xi, 0.3, "none", rotation=90, fontsize=7, ha="center", va="bottom")
+                ax.text(xi, 0.3, "none" if yi == np.inf else "n/a", rotation=90, fontsize=7, ha="center", va="bottom")
     ax.set_xticks(x + w * (len(lines) - 1) / 2)
     ax.set_xticklabels(cases, rotation=25, ha="right", fontsize=8)
     ax.set_ylabel("break-even half-spread (bp)")

@@ -58,6 +58,7 @@ class QuoterParams:
     es_tick: float = 0.25
     es_multiplier: float = 50.0
     fx_half_spread_bp: float = 0.5
+    fx_hedge: str = "daily"  # "daily": one conversion a day; "fill": each fill's local cash converted at the next bar's rate
     fx_hedge_minutes_before_close: int = 6
     flatten_half_spread_bp: float = 5.0
     track_es: bool = False  # True: the quotes are re-priced within the bar as ES moves (the ES bar's high/low), see module doc
@@ -78,7 +79,8 @@ class QuoterParams:
                   hedge_delay_bars=q["hedge_delay_bars"], eod=q["eod"], etf_fee_bp=q["etf_fee_bp"], es_fee_usd=q["es_fee_usd_per_contract"],
                   es_half_spread_ticks=q["es_half_spread_ticks"], es_tick=fv["futures_tick"], es_multiplier=fv["futures_multiplier"],
                   fx_half_spread_bp=q["fx_half_spread_bp"], fx_hedge_minutes_before_close=q["fx_hedge_minutes_before_close"], flatten_half_spread_bp=q["flatten_half_spread_bp"],
-                  track_es=q.get("track_es", False), recentre_halflife_min=q.get("recentre_halflife_min", 0.0), tick=cfg["tick"], currency=cfg["currency"], venue=cfg["venue"])
+                  track_es=q.get("track_es", False), recentre_halflife_min=q.get("recentre_halflife_min", 0.0), fx_hedge=q.get("fx_hedge", "daily"),
+                  tick=cfg["tick"], currency=cfg["currency"], venue=cfg["venue"])
         kw.update(over)
         return cls(**kw)
 
@@ -200,8 +202,8 @@ def replay(a: dict, p: QuoterParams, record_path: bool = False) -> dict:
         due = [x for x in pending if x[2] <= t]
         if due and hedge_now(t, due):
             pending = [x for x in pending if x[2] > t]
-        # 3. daily FX conversion
-        if a["is_fx"][t] and not usd_line and cash_loc != 0 and np.isfinite(X_m[t]):
+        # 3. FX conversion: once a day, or every bar after a fill (fx_hedge = "fill": the local cash of the previous bar's fills)
+        if (a["is_fx"][t] or p.fx_hedge == "fill") and not usd_line and cash_loc != 0 and np.isfinite(X_m[t]):
             cost = abs(cash_loc) * X_m[t] * p.fx_half_spread_bp / 1e4
             cash_usd += cash_loc * X_m[t] - cost
             cash_loc = 0.0

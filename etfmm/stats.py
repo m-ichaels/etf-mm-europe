@@ -2,7 +2,8 @@
 
 The quoter is replayed on a grid of half-spreads h.  For each h the days give totals (P&L in USD by component, fill notional,
 fill count).  P&L per fill in bp of the fill notional is sum(P&L) / sum(notional) x 1e4; the break-even h* is where that curve
-crosses zero (linear interpolation between grid points, the first crossing from below).  Uncertainty: a circular block
+crosses zero (linear interpolation between grid points, the first crossing from below; grid points with fewer than `min_fills`
+fills over the sample carry no estimate).  Uncertainty: a circular block
 bootstrap over trading days (blocks of `block_days`), re-solving h* on each resample.
 """
 from __future__ import annotations
@@ -39,16 +40,21 @@ def block_indices(n_days: int, block: int, rng: np.random.Generator) -> np.ndarr
     return idx
 
 
-def bootstrap_curve(daily: pd.DataFrame, h_grid: list, n_boot: int = 1000, block: int = 3, seed: int = 0, base_h: float | None = None) -> dict:
+def bootstrap_curve(daily: pd.DataFrame, h_grid: list, n_boot: int = 1000, block: int = 3, seed: int = 0, base_h: float | None = None, min_fills: int = 10) -> dict:
     """daily: rows (h, date, pnl_usd, notional_usd, n_fills, ...).  Returns the point estimates and intervals of P&L per fill
     (bp) by h, the break-even h*, and the P&L per fill at base_h."""
     piv_pnl = daily.pivot(index="date", columns="h", values="pnl_usd").reindex(columns=h_grid).fillna(0.0)
     piv_not = daily.pivot(index="date", columns="h", values="notional_usd").reindex(columns=h_grid).fillna(0.0)
     P, N = piv_pnl.to_numpy(), piv_not.to_numpy()
     h = np.asarray(h_grid, float)
+    if "n_fills" in daily.columns:
+        enough = daily.pivot(index="date", columns="h", values="n_fills").reindex(columns=h_grid).fillna(0.0).to_numpy().sum(0) >= min_fills
+    else:
+        enough = np.ones(len(h_grid), bool)
 
     def curve(idx):
-        return np.where(N[idx].sum(0) > 0, P[idx].sum(0) / np.maximum(N[idx].sum(0), 1e-12) * 1e4, np.nan)
+        y = np.where(N[idx].sum(0) > 0, P[idx].sum(0) / np.maximum(N[idx].sum(0), 1e-12) * 1e4, np.nan)
+        return np.where(enough, y, np.nan)  # grid points with fewer than min_fills fills over the sample carry no estimate
 
     y0 = curve(np.arange(len(P)))
     he0 = breakeven(h, y0)
@@ -65,7 +71,7 @@ def bootstrap_curve(daily: pd.DataFrame, h_grid: list, n_boot: int = 1000, block
     out = {"h": h.tolist(), "pnl_bp": y0.tolist(), "pnl_bp_lo": np.nanpercentile(ys, 2.5, axis=0).tolist(), "pnl_bp_hi": np.nanpercentile(ys, 97.5, axis=0).tolist(),
            "breakeven_bp": he0, "breakeven_lo": float(np.nanpercentile(hes[fin], 2.5)) if fin.any() else np.nan,
            "breakeven_hi": float(np.nanpercentile(hes[fin], 97.5)) if fin.any() else np.nan,
-           "breakeven_share_inf": float(1 - fin.mean()), "n_days": int(len(P)), "n_boot": n_boot, "block_days": block}
+           "breakeven_share_inf": float(1 - fin.mean()), "n_days": int(len(P)), "n_boot": n_boot, "block_days": block, "min_fills": min_fills, "h_with_enough_fills": h[enough].tolist()}
     if base_h is not None and base_h in h_grid:
         j = h_grid.index(base_h)
         out["base_h"] = base_h

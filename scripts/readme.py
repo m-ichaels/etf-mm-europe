@@ -19,9 +19,19 @@ def f2(x, nd=1):
     if x is None:
         return "n/a"
     x = float(x)
+    if np.isnan(x):
+        return "n/a"
     if not np.isfinite(x):
-        return "none on the grid" if x > 0 else "nan"
+        return "none on the grid"
     return f"{x:.{nd}f}"
+
+
+def be_text(x, lo, hi, nd=1):
+    """'5.8 bp [3.5, 8.1]' or 'no break-even on the grid (bootstrap [4.3, 11.5])'."""
+    x = float(x)
+    if np.isfinite(x):
+        return f"{x:.{nd}f} bp [{f2(lo, nd)}, {f2(hi, nd)}]"
+    return f"no break-even on the grid (bootstrap [{f2(lo, nd)}, {f2(hi, nd)}])"
 
 
 def ci(r, key="breakeven", nd=1):
@@ -57,8 +67,8 @@ def build() -> str:
     for name in L:
         r = be[name]
         tr = S(name, "quotes_track_es")
-        hl.append(f"**{name}** {f2(r['breakeven_bp'])} bp {ci(r)} against a one-unit bound of {f2(r['bound_one_unit_bp'])} bp "
-                  f"({f2(tr.breakeven_bp)} bp {ci(tr)} when the quotes follow ES inside the minute)")
+        hl.append(f"**{name}** {be_text(r['breakeven_bp'], r['breakeven_lo'], r['breakeven_hi'])} against a one-unit bound of {f2(r['bound_one_unit_bp'])} bp "
+                  f"({be_text(tr.breakeven_bp, tr.breakeven_lo, tr.breakeven_hi)} when the quotes follow ES inside the minute)")
     n_clear_fixed = sum(1 for name in L if be[name]["clears_bound_one_unit"])
     n_clear_track = sum(1 for name in L if np.isfinite(S(name, "quotes_track_es").breakeven_bp) and S(name, "quotes_track_es").breakeven_bp <= be[name]["bound_one_unit_bp"])
     base_pnl = {name: be[name].get("base_pnl_bp") for name in L}
@@ -83,8 +93,8 @@ def build() -> str:
               f"one tick through the quote (the pessimistic reading of a bar), the break-even half-spread is " + "; ".join(hl) + ". "
               f"The one-unit bound is {f2(bound_range[0])}–{f2(bound_range[1])} bp (fixed fee amortised over one unit, basket half-spread, E-mini half-tick and fee, one FX conversion for the GBP and EUR lines, one day of T+2/T+1 settlement financing) "
               f"and {f2(bound10[0])}–{f2(bound10[1])} bp over ten units; the hedge cost alone is {f2(list(bound_hedge.values())[0], 2)} bp. "
-              f"With fixed quotes {n_clear_fixed} of 4 lines clear the one-unit bound; with quotes that track ES inside the bar {n_clear_track} of 4 do. "
-              f"At the base half-spread of {base_h} bp the fixed-quote book loses {f2(-min(base_pnl.values()))} to {f2(-max(base_pnl.values()))} bp per fill: it captures "
+              f"With fixed quotes {n_clear_fixed} of the 4 lines {'clears' if n_clear_fixed == 1 else 'clear'} the one-unit bound; with quotes that track ES inside the bar {n_clear_track} of 4 do. "
+              f"At the base half-spread of {base_h} bp the fixed-quote book loses {f2(-max(base_pnl.values()))} to {f2(-min(base_pnl.values()))} bp per fill: it captures "
               f"{f2(cap_range[0])}–{f2(cap_range[1])} bp against the fair at the fill and gives {f2(-slip_range[1])}–{f2(-slip_range[0])} bp back between the fill and the hedge one minute later, "
               f"because a bar that trades through a quote is mostly a bar in which the index moved. The lines sit within {f2(sd_range[0])}–{f2(sd_range[1])} bp (sd) of the ES-implied fair, "
               f"{f2(wsd_range[0])}–{f2(wsd_range[1])} bp within the day, and close {f2(min(v for v in nav_prem.values() if v is not None))}–{f2(max(v for v in nav_prem.values() if v is not None))} bp rich to the issuer's NAV-fair where a NAV exists. "
@@ -95,12 +105,20 @@ def build() -> str:
               f"weeks of carry and the December contract's three months are both measured, not assumed), divided by the fund/index ratio struck from the previous closes "
               f"and by the spot rate. Yahoo's continuous ES=F switched from the {sw['from_expiry']} to the {sw['to_expiry']} contract at {sw['ts'][:16]} UTC "
               f"(a {sw['one_minute_return_bp']:.0f} bp one-minute jump that the cash index confirms); every bar carries its own contract and the hedge rolls there.")
-    md.append(f"- *Premium.* The four lines are within {f2(sd_range[0])}–{f2(sd_range[1])} bp (sd) of fair at the minute; 5 % of minutes are more than "
-              f"{f2(prem.abs_prem_median_bp.max())}… see the table; the premium to the issuer's NAV is persistent: CSPX closes a median {f2(nav_prem['CSPX'])} bp and SXR8 {f2(nav_prem['SXR8'])} bp above NAV-fair over the 21 NAV days, "
-              f"so a quoter centred on NAV would sell all day — the quoter here centres on where the line itself closed (kappa from the closing prints), and the `kappa=nav` row of the sensitivity table shows the cost of centring on NAV.")
+    md.append(f"- *Premium.* The four lines are within {f2(sd_range[0])}–{f2(sd_range[1])} bp (sd) of fair at the minute and {f2(prem.share_abs_gt_5bp.min() * 100, 0)}–{f2(prem.share_abs_gt_5bp.max() * 100, 0)} % of minutes are more than 5 bp away; "
+              f"the premium to the issuer's NAV is persistent: CSPX closes a median {f2(nav_prem['CSPX'])} bp and SXR8 {f2(nav_prem['SXR8'])} bp above NAV-fair over the {fv['lines']['CSPX']['nav_days_available']} NAV days, "
+              f"so a quoter centred on NAV would be sold to all day — the quoter here centres on where the line itself closed (kappa from the closing prints), and the `kappa=nav` row of the sensitivity table shows the cost of centring on NAV.")
+    fxf = {n: S(n, "fx_hedge=fill") for n in L if lines[n]["currency"] != "USD" and len(sens[(sens.line == n) & (sens.case == "fx_hedge=fill")])}
+    if fxf:
+        md.append(f"- *FX.* Hedging the FX leg once a day costs the GBP and EUR lines " + " and ".join(f"{f2(-comp[n]['fx'])} bp per fill ({n})" for n in fxf) + f" at h = {base_h}: a fill arrives after the spot rate has moved the local-currency fair, "
+                  f"so the cash the quoter is left holding is on the wrong side of a move that continues through the day (daily FX P&L against net flow x spot change: negative correlation). Converting each fill's cash at the next bar instead "
+                  + "; ".join(f"moves the {n} break-even from {f2(be[n]['breakeven_bp'])} to {f2(fxf[n].breakeven_bp)} bp" for n in fxf) + " (the FX component at h = 3 goes from "
+                  + ", ".join(f"{f2(comp[n]['fx'])} to {f2(float(pd.read_csv(os.path.join(R, 'quoter_grid.csv')).query('line == @n and case == \"fx_hedge=fill\" and h == @base_h').fx_bp.iloc[0]))} bp ({n})" for n in fxf) + ").")
     md.append(f"- *Attribution.* Per fill at h = {base_h} bp: " + "; ".join(f"{n}: capture {f2(comp[n]['capture'])}, hedge slippage {f2(comp[n]['hedge_slip'])}, FX {f2(comp[n]['fx'])}, inventory {f2(comp[n]['inventory'])}, fees {f2(comp[n]['fees'])}, total {f2(qs[n]['pnl_bp'])} bp ({qs[n]['n_fills']} fills, {f2(qs[n]['pnl_per_fill_usd'], 0)} USD per fill)" for n in L) + ". "
               "The identity cash + inventory at the closing mark = capture + slippage + FX + inventory + fees holds to 1e-6 USD on every run.")
-    md.append(f"- *Sensitivity.* The fill rule is the result: a quote that is filled when the bar touches it (`through_ticks=0`) and a quote that re-prices inside the bar as ES moves (`quotes_track_es`) move the break-even by several bp; the end-of-day choice (carry the hedged inventory, flatten at the close, redeem at NAV less the one-unit bound) and the hedge delay move it less. §Results has the table.")
+    md.append(f"- *The two brackets.* With quotes fixed for the minute, a fill is a stale quote hit after the index moved: the quoter captures the half-spread against the bar-start fair and gives most of it back before the hedge (hedge slippage {f2(slip_range[0])} to {f2(slip_range[1])} bp per fill at h = {base_h}). "
+              f"With quotes that follow the ES bar's range (`quotes_track_es`), every fill is at the minute's extreme and the mark then reverts towards the close, so the slippage turns positive and the break-even falls to the bottom of the grid; that is the optimistic reading. "
+              f"A quoter re-pricing on every ES tick with a known queue position lies between the two columns; the bars cannot place it, and §Limits says so. The end-of-day choice (carry the hedged inventory, flatten at the close, redeem at NAV less the one-unit bound), the hedge delay, the inventory skew and the participation cap move the break-even less than the fill rule does (§Results).")
     md.append("")
     md.append(f"Data checked {fv['generated'][:10]}. Python package `etfmm` (numpy/pandas), {count_tests()} tests, CI runs the pipeline on the checked-in data. The faulted monitor days are simulated and said so; everything else is the replay on Yahoo's bars. "
               "1-minute bars are not a tick book: the quoter re-prices once a minute (or follows the ES bar's range in the tracking case), queue position is unknown, and the sample is 30 calendar days.")
@@ -152,6 +170,7 @@ results/                summary.md and the machine-written files the README is b
               f"({[a for a in nav_i if a['name'] == 'VUSA_page_nav'][0]['result']}, {[a for a in nav_i if a['name'] == 'VUAA_page_nav'][0]['result']}) | to {bars['last'][:10]} | "
               "the old iShares `.ajax` csv endpoints and the Vanguard investor-site json endpoints return the page html (recorded in `data/reference/issuer_old/`); the Vanguard NAV history is therefore four to five days, used as a check only |")
     md.append("| reference facts | iShares VII plc prospectus; Vanguard Funds plc prospectus (2 June 2026) and the 16 Jan 2023 creation-unit notice; LSE MIT201; Deutsche Börse Xetra trading parameters (1 Dec 2025); RTS 11 tick table | read 2026-10-07 | `configs/sources.json` quotes each passage; creation unit 60,000 shares (Vanguard, published), 50,000 (iShares, not published, assumption); creation fees are 'available from the Investment Manager' at both issuers, so the fixed fee is an assumption with a sensitivity |")
+    md.append("| not available, and said so | the LSE Business Parameters tick schedule (an xlsx the pipeline could not locate), the issuers' actual creation fees and the iShares unit size, Vanguard's daily NAV history (the investor-site json endpoints return html), any order-book or tick data | — | ticks are inferred from the prints; the fees are assumptions with sensitivities; the Vanguard NAV is the page's last five days; the bar fill rule stands in for the book |")
     md.append("")
     md.append("Ticks inferred from the prints: " + "; ".join(f"{n} {ticks[n]['tick_inferred']} {ticks[n]['currency']} ({ticks[n]['on_grid_share']:.1%} of {ticks[n]['n_prices']:,} prices on the grid)" for n in L)
               + ". The RTS 11 band-6 table would put SXR8 at 0.10 EUR; the Xetra prints sit on 0.02, so the prints are used.")

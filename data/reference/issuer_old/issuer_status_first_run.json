@@ -1,0 +1,42 @@
+{
+ "checked": "2026-10-07T16:54:35+00:00",
+ "attempts": [
+  {
+   "source": "iShares",
+   "name": "CSPX_nav",
+   "url": "https://www.ishares.com/uk/individual/en/products/253743/ishares-sp-500-b-ucits-etf-acc-fund/1506575576011.ajax?fileType=csv&fileName=CSPX_nav&dataType=nav",
+   "result": "fail: html page served instead of the file"
+  },
+  {
+   "source": "iShares",
+   "name": "CSPX_holdings",
+   "url": "https://www.ishares.com/uk/individual/en/products/253743/ishares-sp-500-b-ucits-etf-acc-fund/1506575576011.ajax?fileType=csv&fileName=CSPX_holdings&dataType=fund",
+   "result": "fail: html page served instead of the file"
+  },
+  {
+   "source": "iShares",
+   "name": "CSPX_performance",
+   "url": "https://www.ishares.com/uk/individual/en/products/253743/ishares-sp-500-b-ucits-etf-acc-fund/1506575576011.ajax?fileType=json&dataType=performance",
+   "result": "fail: html page served instead of the file"
+  },
+  {
+   "source": "Vanguard",
+   "name": "VUSA_price_history",
+   "url": "https://www.vanguardinvestor.co.uk/api/fund-data/9503/etf/price-history?startDate=2019-01-01&endDate=2026-12-31",
+   "result": "fail: html page served instead of the file"
+  },
+  {
+   "source": "Vanguard",
+   "name": "VUAA_price_history",
+   "url": "https://www.vanguardinvestor.co.uk/api/fund-data/9679/etf/price-history?startDate=2019-01-01&endDate=2026-12-31",
+   "result": "fail: html page served instead of the file"
+  },
+  {
+   "source": "Vanguard",
+   "name": "vanguard_product_list",
+   "url": "https://www.vanguardinvestor.co.uk/api/productList",
+   "result": "ok 163924 bytes",
+   "file": "data/reference/issuer/vanguard_product_list.json"
+  }
+ ]
+}
