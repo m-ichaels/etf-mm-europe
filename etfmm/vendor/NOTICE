@@ -1,0 +1,14 @@
+Vendored code. Copied into this repository so that it builds from a fresh clone alone.
+
+yahoo.py        from m-ichaels/delta-one-basis, tools/download.py (yahoo_chart, _frame, yahoo_daily, yahoo_intraday, get)
+                - the Yahoo chart-API loader: daily bars with dividends, 1-minute bars in 7-day windows over the trailing 30 days.
+                  Adapted: no module-level log file, the 1-minute window is clipped to the 30-day limit, intraday bars keep NaN
+                  closes (a minute with no trade), hourly/2-minute paths removed.
+d1_fairvalue.py from m-ichaels/delta-one-basis, d1basis/fairvalue.py and d1basis/calendar.py
+                - the cost-of-carry fair value F* = (I - PV D)(1 + r tau), the point-in-time dividend forecast, the within-quarter
+                  accrual profile measured from the fund's price against the index, the bill-curve interpolation, the AR(1)
+                  half-life with its circular block bootstrap, NYSE holidays by rule and the third-Friday expiry.
+                  Adapted: data access takes DataFrames instead of the d1basis.data loaders.
+The quoter attribution identity (cash + inventory at the closing mark = spread capture + inventory + hedge, fees separate) and
+the fault-injection scoring pattern follow m-ichaels/futures-desk-analytics (futdesk/pnl.py, futdesk/monitor.py); the code in
+etfmm/pnl.py and etfmm/monitor.py is written for the ETF book and is not a copy.

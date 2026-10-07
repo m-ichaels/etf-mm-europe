@@ -1,0 +1,42 @@
+{
+ "checked": "2026-10-07T23:00:04+00:00",
+ "attempts": [
+  {
+   "source": "iShares",
+   "name": "CSPX_nav",
+   "url": "https://www.blackrock.com/varnish-api/uk-retail01-product-data/product-data/api/v2/get-product-data?...&portfolioId=253743&component=performance",
+   "result": "ok 4170 rows",
+   "file": "data/reference/issuer/CSPX_nav.parquet",
+   "first": "2010-05-19",
+   "last": "2026-10-06",
+   "last_nav": 843.548046
+  },
+  {
+   "source": "iShares",
+   "name": "CSPX_keyfacts",
+   "url": "https://www.blackrock.com/varnish-api/uk-retail01-product-data/product-data/api/v2/get-product-data?...&portfolioId=253743&component=keyFundFacts",
+   "result": "ok",
+   "file": "data/reference/issuer/CSPX_keyfacts.json",
+   "ter": "0.07%",
+   "shares_outstanding": "187,741,982"
+  },
+  {
+   "source": "Vanguard",
+   "name": "VUSA_page_nav",
+   "url": "https://www.vanguard.co.uk/professional/product/etf/equity/9503/sp-500-ucits-etf-usd-distributing",
+   "result": "ok 4 rows",
+   "file": "data/reference/issuer/VUSA_page_nav.parquet",
+   "last": "2026-10-06",
+   "last_nav_usd": 148.13
+  },
+  {
+   "source": "Vanguard",
+   "name": "VUAA_page_nav",
+   "url": "https://www.vanguard.co.uk/professional/product/etf/equity/9694/sp-500-ucits-etf",
+   "result": "ok 5 rows",
+   "file": "data/reference/issuer/VUAA_page_nav.parquet",
+   "last": "2026-10-07",
+   "last_nav_usd": 150.93
+  }
+ ]
+}

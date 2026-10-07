@@ -1,0 +1,204 @@
+{
+ "assetClass": [
+  "Equity",
+  null
+ ],
+ "baseCurrencyCode": [
+  "USD",
+  null
+ ],
+ "bbeqtick": [
+  "CSPX LN",
+  null
+ ],
+ "domicile": [
+  "Ireland",
+  null
+ ],
+ "emeaMgt": [
+  "0.07%",
+  null
+ ],
+ "esmaBenchmarksByDataPointName": [
+  "-",
+  null
+ ],
+ "fiscalYearEndDate": [
+  "31 July",
+  null
+ ],
+ "fundAdministrator": [
+  "BNY Mellon Fund Services (Ireland) Designated Activity Company",
+  null
+ ],
+ "fundCustodian": [
+  "The Bank of New York Mellon SA/NV, Dublin Branch",
+  null
+ ],
+ "fundMethodologyTypeCode": [
+  "Physical Replication",
+  null
+ ],
+ "fundmanager": [
+  "BlackRock Asset Management Ireland Limited",
+  null
+ ],
+ "inceptionDate": [
+  "19/May/2010",
+  null
+ ],
+ "indexSeriesName": [
+  "S&P 500 Index",
+  null
+ ],
+ "isaEligibilityFlag": [
+  "Yes",
+  null
+ ],
+ "isin": [
+  "IE00B5BMR087",
+  null
+ ],
+ "issuingCompany": [
+  "iShares VII plc",
+  null
+ ],
+ "launchDate": [
+  "18/May/2010",
+  null
+ ],
+ "oneYearSecLendingReturn": [
+  "0.00%",
+  "30/Jun/2026"
+ ],
+ "productStructure": [
+  "Physical",
+  null
+ ],
+ "rebalanceFrequency": [
+  "Quarterly",
+  null
+ ],
+ "seriesBaseCurrencyCode": [
+  "USD",
+  null
+ ],
+ "sfdr": [
+  "Other",
+  null
+ ],
+ "sharesOutstanding": [
+  "187,741,982",
+  "06/Oct/2026"
+ ],
+ "sippEligibilityFlag": [
+  "Yes",
+  null
+ ],
+ "totalNetAssets": [
+  "158,369,382,027",
+  "06/Oct/2026"
+ ],
+ "totalNetAssetsFundLevel": [
+  "161,563,262,513",
+  "06/Oct/2026"
+ ],
+ "ucitsCompliantFlag": [
+  "Yes",
+  null
+ ],
+ "ukDistributorStatusTypeId": [
+  "Yes",
+  null
+ ],
+ "useOfProfitsCode": [
+  "Accumulating",
+  null
+ ],
+ "_listings": {
+  "BBEQTICK": [
+   "CSPX LN",
+   "CSPX NA",
+   "CSPX CB",
+   "SXR8 GY",
+   "CSP1 LN",
+   "CSPXN MM",
+   "CSSPX IM",
+   "CSPX",
+   "CSSPX SW",
+   "iSFF702 IT"
+  ],
+  "currencyCode": [
+   "USD",
+   "EUR",
+   "COP",
+   "EUR",
+   "GBP",
+   "MXN",
+   "EUR",
+   "USD",
+   "USD",
+   "ILS"
+  ],
+  "exchange": [
+   "London Stock Exchange",
+   "Euronext Amsterdam",
+   "Bolsa De Valores De Colombia",
+   "Deutsche Boerse Xetra",
+   "London Stock Exchange",
+   "Bolsa Mexicana De Valores",
+   "Borsa Italiana",
+   "Santiago Stock Exchange",
+   "SIX Swiss Exchange",
+   "Tel Aviv Stock Exchange"
+  ],
+  "listingDate": [
+   "15/Sept/2010",
+   "18/Jan/2011",
+   "14/Sept/2021",
+   "26/May/2010",
+   "15/Sept/2010",
+   "04/Sept/2015",
+   "26/May/2010",
+   "14/Sept/2022",
+   "19/May/2010",
+   "05/Aug/2019"
+  ],
+  "ric": [
+   "CSPX.L",
+   "CSP1.AS",
+   "-",
+   "SXR8.DE",
+   "CSP1.L",
+   "CSPXN.MX",
+   "CSSPX.MI",
+   "-",
+   "CSSPX.S",
+   "iSFF702.TA"
+  ],
+  "sedol": [
+   "B50YWZ5",
+   "BLWDYR8 NL",
+   "BMHVDJ9",
+   "B594LM6",
+   "B521C87",
+   "BZ2YY35",
+   "B584YB7",
+   "BQ9BG30",
+   "B5BMR08",
+   "BK8Y9Q2"
+  ],
+  "ticker": [
+   "CSPX",
+   "CSPX",
+   "CSPXCO",
+   "SXR8",
+   "CSP1",
+   "CSPX",
+   "CSSPX",
+   "CSPX",
+   "CSSPX",
+   "1159250"
+  ]
+ }
+}

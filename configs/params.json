@@ -1,0 +1,126 @@
+{
+  "_note": "Inputs to the run, not results. Every market-microstructure figure here that is not read from a cited document is an assumption, flagged as such, and the sensitivity tables in results/ show what moves when it moves.",
+  "fair_value": {
+    "rate": "bill",
+    "dividend_fund": "SPY",
+    "index": "^GSPC",
+    "futures": "ES=F",
+    "futures_multiplier": 50,
+    "futures_tick": 0.25,
+    "kappa_window_days": 5,
+    "kappa_mode": "issuer_nav_else_self",
+    "withholding_tax": 0.15
+  },
+  "quoter": {
+    "half_spread_bp_grid": [
+      0.5,
+      1,
+      1.5,
+      2,
+      2.5,
+      3,
+      4,
+      5,
+      6,
+      8,
+      10,
+      12,
+      15
+    ],
+    "base_half_spread_bp": 3,
+    "clip_notional_usd": "one ES contract: 50 x the ES price, in shares at the fair, rounded",
+    "skew_bp_per_clip": 1.0,
+    "max_inventory_clips": 5,
+    "through_ticks": 1,
+    "max_participation": 0.5,
+    "skip_open_minutes": 5,
+    "skip_close_minutes": 5,
+    "stale_minutes": 3,
+    "fast_market_bp": 15,
+    "hedge_delay_bars": 1,
+    "eod": "carry",
+    "etf_fee_bp": 0.3,
+    "es_fee_usd_per_contract": 1.4,
+    "es_half_spread_ticks": 0.5,
+    "fx_half_spread_bp": 0.5,
+    "flatten_half_spread_bp": 5,
+    "fx_hedge_minutes_before_close": 6,
+    "track_es": false,
+    "recentre_halflife_min": 0
+  },
+  "sensitivity": {
+    "through_ticks": [
+      0,
+      1,
+      2
+    ],
+    "max_participation": [
+      0.25,
+      0.5,
+      1.0
+    ],
+    "eod": [
+      "carry",
+      "create_redeem",
+      "flatten_close"
+    ],
+    "hedge_delay_bars": [
+      1,
+      2,
+      5
+    ],
+    "recentre_halflife_min": [
+      30
+    ],
+    "track_es": [
+      true
+    ]
+  },
+  "bound": {
+    "units": [
+      1,
+      2,
+      5,
+      10
+    ],
+    "basket_half_spread_bp": 1.5,
+    "es_half_spread_ticks": 0.5,
+    "fx_half_spread_bp": 0.5,
+    "settlement_mismatch_days": 1,
+    "settlement_mismatch_days_grid": [
+      0,
+      1,
+      2
+    ],
+    "fixed_fee_usd": 1500,
+    "fixed_fee_usd_grid": [
+      500,
+      1500,
+      3000,
+      5000
+    ],
+    "basket_half_spread_bp_grid": [
+      1.0,
+      1.5,
+      2.5
+    ]
+  },
+  "bootstrap": {
+    "n_boot": 1000,
+    "block_days": 3,
+    "seed": 0
+  },
+  "monitor": {
+    "position_limit_clips": 6,
+    "delta_limit_clips": 0.75,
+    "delta_persist_bars": 3,
+    "fx_exposure_limit_usd": 2000000,
+    "stale_minutes": 3,
+    "stuck_quote_bp": 10,
+    "hedge_slip_bp": 10,
+    "premium_band_bp": 40,
+    "fat_finger_clips": 3,
+    "drawdown_usd": 25000,
+    "detect_window_minutes": 15
+  }
+}

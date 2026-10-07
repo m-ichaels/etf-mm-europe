@@ -1,0 +1,83 @@
+{
+ "CSPX.L": {
+  "currency": "USD",
+  "exchangeName": "LSE",
+  "fullExchangeName": "LSE",
+  "exchangeTimezoneName": "Europe/London",
+  "instrumentType": "ETF",
+  "longName": "iShares Core S&P 500 UCITS ETF USD (Acc)",
+  "shortName": "ISHARES VII PLC ISHRS CORE S&P "
+ },
+ "VUAA.L": {
+  "currency": "USD",
+  "exchangeName": "LSE",
+  "fullExchangeName": "LSE",
+  "exchangeTimezoneName": "Europe/London",
+  "instrumentType": "ETF",
+  "longName": "Vanguard S&P 500 UCITS ETF USD Accumulation",
+  "shortName": "VANGUARD FUNDS PLC VANGUARD S&P"
+ },
+ "VUSA.L": {
+  "currency": "GBP",
+  "exchangeName": "LSE",
+  "fullExchangeName": "LSE",
+  "exchangeTimezoneName": "Europe/London",
+  "instrumentType": "ETF",
+  "longName": "Vanguard S&P 500 UCITS ETF",
+  "shortName": "VANGUARD FUNDS PLC VANGUARD S&P"
+ },
+ "SXR8.DE": {
+  "currency": "EUR",
+  "exchangeName": "GER",
+  "fullExchangeName": "XETRA",
+  "exchangeTimezoneName": "Europe/Berlin",
+  "instrumentType": "ETF",
+  "longName": "iShares Core S&P 500 UCITS ETF USD (Acc)",
+  "shortName": "iShs VII-Core S&P 500 U.ETF   R"
+ },
+ "SPY": {
+  "currency": "USD",
+  "exchangeName": "PCX",
+  "fullExchangeName": "NYSEArca",
+  "exchangeTimezoneName": "America/New_York",
+  "instrumentType": "ETF",
+  "longName": "State Street SPDR S&P 500 ETF Trust",
+  "shortName": "State Street SPDR S&P 500 ETF T"
+ },
+ "^GSPC": {
+  "currency": "USD",
+  "exchangeName": "SNP",
+  "fullExchangeName": "SNP",
+  "exchangeTimezoneName": "America/New_York",
+  "instrumentType": "INDEX",
+  "longName": "S&P 500",
+  "shortName": "S&P 500"
+ },
+ "ES=F": {
+  "currency": "USD",
+  "exchangeName": "CME",
+  "fullExchangeName": "CME",
+  "exchangeTimezoneName": "America/New_York",
+  "instrumentType": "FUTURE",
+  "longName": null,
+  "shortName": "E-Mini S&P 500 Dec 26"
+ },
+ "GBPUSD=X": {
+  "currency": "USD",
+  "exchangeName": "CCY",
+  "fullExchangeName": "CCY",
+  "exchangeTimezoneName": "Europe/London",
+  "instrumentType": "CURRENCY",
+  "longName": "GBP/USD",
+  "shortName": "GBP/USD"
+ },
+ "EURUSD=X": {
+  "currency": "USD",
+  "exchangeName": "CCY",
+  "fullExchangeName": "CCY",
+  "exchangeTimezoneName": "Europe/London",
+  "instrumentType": "CURRENCY",
+  "longName": "EUR/USD",
+  "shortName": "EUR/USD"
+ }
+}

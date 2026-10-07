@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "etfmm"
+version = "0.1.0"
+description = "A futures-hedged two-way quoter on UCITS S&P 500 ETF lines: fair value from the E-mini and FX, the premium/discount, the creation/redemption bound, the quoter's P&L per fill and break-even half-spread, and a positions monitor with a fault-injection scorer"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "pyarrow", "scipy", "matplotlib", "tzdata"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools]
+packages = ["etfmm", "etfmm.vendor"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"

@@ -1,0 +1,67 @@
+{
+  "_note": "Reference facts used by the pipeline, each with the document it was read from and the date it was read. Numbers marked assumption are not in any document; they are inputs in params.json and the sensitivity tables show what moves when they move.",
+  "accessed": "2026-10-07",
+  "funds": {
+    "iShares Core S&P 500 UCITS ETF USD (Acc)": {
+      "isin": "IE00B5BMR087",
+      "umbrella": "iShares VII plc (Ireland)",
+      "lines": {"CSPX": "London Stock Exchange, USD", "SXR8": "Deutsche Boerse Xetra, EUR", "CSP1": "London Stock Exchange, GBP (not used)"},
+      "ter": "0.07% (product page key facts, 'emeaMgt'); prospectus caps the TER at 'Up to 0.10%'",
+      "nav_history": "daily NAV per share in USD since 19 May 2010 from the product-data API behind the product page (component=performance, navData); the .ajax csv endpoints of the old site return the page html",
+      "nav_last": "USD 843.55 as of 06/Oct/2026; shares outstanding 187,741,982; net assets of share class USD 158,369,382,027 (API, 06/Oct/2026)",
+      "creation_unit": "not published: the prospectus says dealing orders are accepted 'in multiples of the minimum number of Shares' set at the Manager's discretion and refers Authorised Participants to the Electronic Order Entry Facility (prospectus p. 88). The bound table uses the assumption in params.json (50,000 shares) and states it",
+      "creation_fee": "Shares are subscribed at NAV 'together with associated Duties and Charges which may be varied to reflect the cost of execution' and redeemed at NAV less Duties and Charges; Duties and Charges are the transaction costs, taxes and FX spreads of the trades the fund does (prospectus pp. 10, 88). No fixed amount is published; the bound uses a stated assumption",
+      "dealing_in_kind": "in kind, in cash or directed cash at the Company's discretion (prospectus p. 88); settlement 'can range from one to four Business Days' (p. 88); primary market dealing timetable for the Core S&P 500: valuation point 11.00 pm, cut-off 8.00 pm (p. 92 of the pdf)",
+      "sources": [
+        "iShares VII plc Prospectus (en), https://www.ishares.com/uk/professional/en/literature/prospectus/ishares-vii-plc-prospectus-en.pdf (209 pages, document code NM0826U-5841973), read 2026-10-07",
+        "Product page and product-data API: https://www.ishares.com/uk/professional/en/products/253743/ishares-sp-500-b-ucits-etf-acc-fund ; https://www.blackrock.com/varnish-api/uk-retail01-product-data/product-data/api/v2/get-product-data?...&portfolioId=253743&component=performance|keyFundFacts|listings"
+      ]
+    },
+    "Vanguard S&P 500 UCITS ETF": {
+      "isin": {"VUSA (USD Distributing)": "IE00B3XXRP09", "VUAA (USD Accumulating)": "IE00BFMXXD54"},
+      "umbrella": "Vanguard Funds plc (Ireland)",
+      "lines": {"VUSA": "London Stock Exchange, GBP (VUSD is the USD line, not used)", "VUAA": "London Stock Exchange, USD (VUAG is the GBP line, not used)"},
+      "ocf": "0.07% (prospectus Appendix 1, 'ETF Class OCF (Unhedged) 0.07% of NAV'; product pages)",
+      "nav_last": "VUSA: NAV Price (USD) US$148.13 at closure 06 Oct 2026; VUAA: US$151.26 at closure 06 Oct 2026 (professional product pages, read 2026-10-07)",
+      "creation_unit": "60,000 Shares: 'Minimum Subscription (cash dealings): The cash equivalent of 1 Creation Unit = 60,000 Shares' (prospectus Appendix 1, Vanguard S&P 500 UCITS ETF, p. 123). Reduced from 100,000 to 60,000 with effect on or about 31 January 2023 (shareholder notice of 16 January 2023, Appendix II)",
+      "creation_fee": "Cash Creation Fee 'Maximum of 2.00% of gross subscription amount' and Cash Redemption Fee maximum 2.00%; 'Custody Transaction Fee and Basket Customisation Fee: the aggregate of these charges will not exceed 2.00%'; 'Details of the current charge are available from the Investment Manager' (p. 123-124). In-kind dealing pays the Custody Transaction Fee (a per-security settlement charge) and the Purchase Balancing Amount; cash dealing pays a basis-point transaction fee or the actual trading cost (pp. 56-59). No fixed amount is published; the bound uses a stated assumption",
+      "dealing": "Cut-off 4.30 p.m. Irish time for unhedged classes (in-kind and cash); settlement of subscriptions in kind 3.00 p.m. Irish time on the Business Day after the Dealing Day, cash 2.00 p.m. (p. 122-123)",
+      "sources": [
+        "Vanguard Funds plc Prospectus dated 2 June 2026 (copy filed with Borsa Italiana), https://www.borsaitaliana.it/etp-listing/2026-00320-PROSPECTUS-MjAyNi0wMDMyMFBST1NQRUNUVVNudWxsMTc2OTI0Mzg2NTM1MDI0MDE3Mw==.pdf (240 pages), read 2026-10-07",
+        "Notice to shareholders, dealing deadline and Creation Unit size changes, 16 January 2023, https://www.vanguard.co.uk/content/dam/intl/europe/documents/fund-announcements/vf-notice-to-shareholders-in-relation-to-dealing-deadline-and-creation-unit-size-changes-final-en.pdf",
+        "Professional product pages: https://www.vanguard.co.uk/professional/product/etf/equity/9503/sp-500-ucits-etf-usd-distributing ; https://www.vanguard.co.uk/professional/product/etf/equity/9694/sp-500-ucits-etf"
+      ]
+    }
+  },
+  "venues": {
+    "LSE": {
+      "hours": "SETS order book: opening auction call 07:50-08:00, continuous trading 08:00-16:30, closing auction 16:30-16:35 (random end within 30 s), London time. The trading-day structure (opening auction, regular trading, closing auction, closing price crossing) is in MIT201 section 4.4; the times are in the Millennium Exchange Business Parameters document and on the exchange's trading-hours page. Yahoo's 1-minute grid for the four lines runs 08:00-16:29 with the closing-auction print stamped 16:30.",
+      "tick_size": "MIT201 section 5.5: tick sizes are static or follow a dynamic schedule set per security in the instrument reference data ('For ETFs not subject to ESMA tick size regime and all ETPs, Quote Response minimum tick size is 0.0001'). The schedule itself is in the Business Parameters file, not in a document this pipeline could fetch, so the tick of each line is inferred from the price grid of its 1-minute prints (etfmm.reference.infer_tick): CSPX 0.01 USD, VUAA 0.02 USD, VUSA 0.0025 GBP (results/reference_facts.json gives the on-grid shares).",
+      "sources": [
+        "London Stock Exchange, MIT201 - Guide to the Trading System, Issue 15.6, effective 29 April 2024, https://www.lseg.com/content/dam/lseg/en_us/documents/londonstockexchange-backup/mit201-guide-to-the-trading-system.pdf",
+        "London Stock Exchange trading hours page, https://www.londonstockexchange.com/trade/equity-trading/trading-hours (javascript page; times also in ShareScope, 'The Trader: Understanding SETS Auctions', 2025-11-28)"
+      ]
+    },
+    "Xetra": {
+      "hours": "ETFs: pre-trading 07:00(book)/08:00 retail early trading, opening auction call 08:55, opening auction price 09:00, intraday auction call 13:00 with price 13:02, closing auction call 17:30, closing auction price 17:35, post-trading to 22:00; CET/CEST ('Trading Parameter Deutsche Boerse Xetra, MIC XETR, as of December 1st, 2025')",
+      "tick_size": "'Equities, DRs, Subscription Rights and MiFID-ETFs with origin EU or Switzerland: tick size according to ESMA (liquidity band 1-6); ETPs (incl. Non-MiFID ETFs): Liquidity Band 6-10' (same document). The RTS 11 table gives, for liquidity band 6, 0.02 for 100 <= price < 200, 0.05 for 200-500 and 0.10 for 500-1000. SXR8's prints sit on a 0.02 EUR grid (100 % of 29,780 prints), which the pipeline uses.",
+      "sources": [
+        "Deutsche Boerse Cash Market, Trading Parameters Xetra (as of 1 December 2025), https://cashmarket.deutsche-boerse.com/resource/blob/250890/43c50e657b0ff5fb58132fbf6e063517/data/trading-parameters-xetra.pdf",
+        "Commission Delegated Regulation (EU) 2017/588 (RTS 11) tick size table as reproduced by Wiener Boerse, https://www.wienerborse.at/en/trading/trading-information/tick-size/"
+      ]
+    },
+    "CME": {
+      "es": "E-mini S&P 500: multiplier USD 50, tick 0.25 index points (USD 12.50), quarterly expiries on the third Friday; Yahoo's continuous ES=F switches contract during expiry week (detected per bar, see etfmm.fairvalue.contract_switch)",
+      "sources": ["CME Group E-mini S&P 500 contract specifications, https://www.cmegroup.com/markets/equities/sp/e-mini-sandp500.contractSpecs.html"]
+    }
+  },
+  "assumptions": {
+    "creation_fixed_fee_usd": "1500 per primary-market order (the custody/transaction charge both issuers say is available from the Investment Manager); sensitivity 500-5000 in results/bound.csv",
+    "basket_half_spread_bp": "1.5 bp to buy or sell the S&P 500 basket (the variable part of a cash creation's Duties and Charges / Cash Creation Fee); sensitivity in results/bound.csv",
+    "es_half_spread": "half a tick (0.125 index points) per contract plus USD 1.40 all-in fee per contract",
+    "fx_half_spread_bp": "0.5 bp on GBP/USD and EUR/USD spot for the sizes here",
+    "settlement_mismatch_days": "1 day of financing at the overnight rate: the ETF settles T+2 on LSE and Xetra, the US basket T+1; sensitivity 0-2 days",
+    "etf_venue_fee_bp": "0.3 bp of notional per ETF fill (exchange and clearing)",
+    "ishares_creation_unit_shares": "50,000 (not published; see funds)"
+  }
+}

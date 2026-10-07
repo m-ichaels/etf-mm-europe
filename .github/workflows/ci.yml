@@ -1,0 +1,23 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test-and-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .[test]
+      - run: python -m pytest
+      - name: the pipeline on the checked-in data (no downloads)
+        env:
+          OMP_NUM_THREADS: "2"
+        run: |
+          python scripts/build_fair.py
+          python scripts/run_bound.py
+          python scripts/run_quoter.py --fast
+          python scripts/run_monitor.py --fast
+          python scripts/make_figures.py
+          python scripts/summarize.py
+          python scripts/readme.py --check
