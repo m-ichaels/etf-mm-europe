@@ -112,10 +112,10 @@ def build() -> str:
     gridf = pd.read_csv(os.path.join(R, "quoter_grid.csv"))
     fx_fill_bp = {n: float(gridf[(gridf.line == n) & (gridf.case == "fx_hedge=fill") & (gridf.h == base_h)].fx_bp.iloc[0]) for n in fxf}
     if fxf:
-        md.append(f"- *FX.* Hedging the FX leg once a day costs the GBP and EUR lines " + " and ".join(f"{f2(-comp[n]['fx'])} bp per fill ({n})" for n in fxf) + f" at h = {base_h}: a fill arrives after the spot rate has moved the local-currency fair, "
-                  f"so the cash the quoter is left holding is on the wrong side of a move that continues through the day (daily FX P&L against net flow x spot change: negative correlation). Converting each fill's cash at the next bar instead "
-                  + "; ".join(f"moves the {n} break-even from {f2(be[n]['breakeven_bp'])} to {f2(fxf[n].breakeven_bp)} bp" for n in fxf) + " (the FX component at h = 3 goes from "
-                  + ", ".join(f"{f2(comp[n]['fx'])} to {f2(fx_fill_bp[n])} bp ({n})" for n in fxf) + ").")
+        md.append(f"- *FX.* Hedging the FX leg once a day costs the GBP and EUR lines " + " and ".join(f"{f2(-comp[n]['fx'])} bp per fill ({n})" for n in fxf) + f" at h = {base_h}: the quoter's net flow runs against the day's spot move "
+                  "(daily FX P&L against net flow x spot change is negatively correlated on both lines), so the local cash it holds until the conversion is on the wrong side of it. Converting each fill's cash at the next bar instead pays the conversion spread on every fill: "
+                  + "; ".join(f"on {n} the FX component at h = {base_h} goes from {f2(comp[n]['fx'])} to {f2(fx_fill_bp[n])} bp and the break-even from {f2(be[n]['breakeven_bp'])} to {f2(fxf[n].breakeven_bp)} bp" for n in fxf)
+                  + " — it removes the exposure on the thin EUR line and only adds cost on the busy GBP line, so the FX policy is a per-line choice, not a rule.")
     md.append(f"- *Attribution.* Per fill at h = {base_h} bp: " + "; ".join(f"{n}: capture {f2(comp[n]['capture'])}, hedge slippage {f2(comp[n]['hedge_slip'])}, FX {f2(comp[n]['fx'])}, inventory {f2(comp[n]['inventory'])}, fees {f2(comp[n]['fees'])}, total {f2(qs[n]['pnl_bp'])} bp ({qs[n]['n_fills']} fills, {f2(qs[n]['pnl_per_fill_usd'], 0)} USD per fill)" for n in L) + ". "
               "The identity cash + inventory at the closing mark = capture + slippage + FX + inventory + fees holds to 1e-6 USD on every run.")
     md.append(f"- *The two brackets.* With quotes fixed for the minute, a fill is a stale quote hit after the index moved: the quoter captures the half-spread against the bar-start fair and gives most of it back before the hedge (hedge slippage {f2(slip_range[0])} to {f2(slip_range[1])} bp per fill at h = {base_h}). "
