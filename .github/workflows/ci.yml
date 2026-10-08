@@ -10,7 +10,9 @@ jobs:
           python-version: "3.12"
       - run: pip install -e .[test]
       - run: python -m pytest
-      - name: the pipeline on the checked-in data (no downloads)
+      - name: README matches the committed results
+        run: python scripts/readme.py --check
+      - name: smoke-run the pipeline on the checked-in data (fast modes; not compared with the README)
         env:
           OMP_NUM_THREADS: "2"
         run: |
@@ -20,4 +22,3 @@ jobs:
           python scripts/run_monitor.py --fast
           python scripts/make_figures.py
           python scripts/summarize.py
-          python scripts/readme.py --check
