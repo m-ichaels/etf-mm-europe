@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""README.md from the results files, so every number in it is the run's.   python scripts/readme.py [--check]
---check: regenerate in memory and fail if README.md on disk differs (CI)."""
+"""README.md and docs/method.md from the results files, so every number in them is the run's.   python scripts/readme.py [--check]
+--check: regenerate in memory and fail if either file on disk differs (CI)."""
 from __future__ import annotations
 
 import json
@@ -14,6 +14,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 from etfmm import data as D  # noqa: E402
 
+OUT = ("README.md", "docs/method.md")
+
 
 def f2(x, nd=1):
     if x is None:
@@ -26,20 +28,19 @@ def f2(x, nd=1):
     return f"{x:.{nd}f}"
 
 
-def be_text(x, lo, hi, nd=1):
-    """'5.8 bp [3.5, 8.1]' or 'no break-even on the grid (bootstrap [4.3, 11.5])'."""
-    x = float(x)
-    if np.isfinite(x):
-        return f"{x:.{nd}f} bp [{f2(lo, nd)}, {f2(hi, nd)}]"
-    return f"no break-even on the grid (bootstrap [{f2(lo, nd)}, {f2(hi, nd)}])"
-
-
 def ci(r, key="breakeven", nd=1):
     lo, hi = r[f"{key}_lo"], r[f"{key}_hi"]
     return f"[{f2(lo, nd)}, {f2(hi, nd)}]"
 
 
-def build() -> str:
+def names(xs):
+    """'A', 'A and B', 'A, B and C'."""
+    xs = list(xs)
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1]
+
+
+def build() -> tuple[str, str]:
+    """(README.md, docs/method.md)."""
     R = D.RESULTS
     lines = D.lines()
     L = list(lines)
@@ -51,7 +52,6 @@ def build() -> str:
     sens = pd.read_csv(os.path.join(R, "sensitivity.csv"))
     facts = json.load(open(os.path.join(R, "reference_facts.json")))
     mon = json.load(open(os.path.join(R, "monitor_faults.json")))
-    kap = pd.read_csv(os.path.join(R, "kappa.csv"))
     params = D.params()
     run = qs["_run"]
     base_h = run["base_h"]
@@ -62,65 +62,153 @@ def build() -> str:
     days = int(prem.days.iloc[0])
     date0, date1 = fv["lines"][L[0]]["first_day"], fv["lines"][L[0]]["last_day"]
 
-    # ---- headline numbers
-    hl = []
-    for name in L:
-        r = be[name]
-        tr = S(name, "quotes_track_es")
-        hl.append(f"**{name}** {be_text(r['breakeven_bp'], r['breakeven_lo'], r['breakeven_hi'])} against a one-unit bound of {f2(r['bound_one_unit_bp'])} bp "
-                  f"({be_text(tr.breakeven_bp, tr.breakeven_lo, tr.breakeven_hi)} when the quotes follow ES inside the minute)")
-    n_clear_fixed = sum(1 for name in L if be[name]["clears_bound_one_unit"])
-    n_clear_track = sum(1 for name in L if np.isfinite(S(name, "quotes_track_es").breakeven_bp) and S(name, "quotes_track_es").breakeven_bp <= be[name]["bound_one_unit_bp"])
     base_pnl = {name: be[name].get("base_pnl_bp") for name in L}
     comp = {name: qs[name]["components_bp"] for name in L}
     cap_range = (min(c["capture"] for c in comp.values()), max(c["capture"] for c in comp.values()))
     slip_range = (min(c["hedge_slip"] for c in comp.values()), max(c["hedge_slip"] for c in comp.values()))
     sd_range = (prem.prem_sd_bp.min(), prem.prem_sd_bp.max())
-    wsd_range = (prem.prem_within_day_sd_bp.min(), prem.prem_within_day_sd_bp.max())
     nav_prem = {name: fv["lines"][name]["prem_nav_close_median_bp"] for name in L}
-    bound_hedge = {name: bound["components_one_unit"][name]["hedge_bp"] for name in L}
     bound_range = (min(bound["one_unit_bp"].values()), max(bound["one_unit_bp"].values()))
-    bound10 = (min(v["10"] for v in (bound["by_units"][n] for n in L)), max(v["10"] for v in (bound["by_units"][n] for n in L)))
+    track = {name: float(S(name, "quotes_track_es").breakeven_bp) for name in L}
+    fxf = {n: S(n, "fx_hedge=fill") for n in L if lines[n]["currency"] != "USD" and len(sens[(sens.line == n) & (sens.case == "fx_hedge=fill")])}
+    gridf = pd.read_csv(os.path.join(R, "quoter_grid.csv"))
+    fx_fill_bp = {n: float(gridf[(gridf.line == n) & (gridf.case == "fx_hedge=fill") & (gridf.h == base_h)].fx_bp.iloc[0]) for n in fxf}
+    q = params["quoter"]
+    through = "a tick" if q["through_ticks"] == 1 else f"{q['through_ticks']} ticks"
 
+    # ---- README.md: the short page; the detail is in docs/method.md
+    fin = sorted(float(be[n]["breakeven_bp"]) for n in L if np.isfinite(be[n]["breakeven_bp"]))
+    never = [n for n in L if not np.isfinite(be[n]["breakeven_bp"])]
+    clears = [n for n in L if be[n]["clears_bound_one_unit"]]
+    nav_vals = [v for v in nav_prem.values() if v is not None]
+    floor = min(run["grid"])
+    at_floor = [n for n in L if track[n] <= floor]
+    tr_vals = [track[n] for n in L if np.isfinite(track[n])]
+    verb = lambda xs, v: v + ("s" if len(xs) == 1 else "")  # noqa: E731
+
+    if fin:
+        be_txt = f"the break-even half-spread is {f2(fin[0])} to {f2(fin[-1])} bp"
+        if never:
+            be_txt += f" ({names(never)} never {verb(never, 'break')} even)"
+    else:
+        be_txt = "no line breaks even on the grid"
+    if len(clears) == 1:
+        clears_txt = f"only {clears[0]} clears it"
+    else:
+        clears_txt = f"{names(clears)} clear it" if clears else "no line clears it"
+    lo_pnl, hi_pnl = min(base_pnl.values()), max(base_pnl.values())
+    if hi_pnl < 0:
+        pnl_txt = f"At a {base_h} bp half-spread the book loses {f2(-hi_pnl)} to {f2(-lo_pnl)} bp per fill"
+    else:
+        pnl_txt = f"At a {base_h} bp half-spread the book makes {f2(lo_pnl)} to {f2(hi_pnl)} bp per fill"
+    if at_floor:
+        track_txt = f"If the quotes follow ES inside the minute, the break-even drops to {floor:g} bp on {names(at_floor)}."
+    elif tr_vals:
+        track_txt = f"If the quotes follow ES inside the minute, the break-even drops to {f2(min(tr_vals))}–{f2(max(tr_vals))} bp."
+    else:
+        track_txt = "Quotes that follow ES inside the minute do not break even either."
+
+    def fx_move(n):
+        b0, b1 = float(be[n]["breakeven_bp"]), float(fxf[n].breakeven_bp)
+        if np.isfinite(b1) and not np.isfinite(b0):
+            return f"gives {n} a break-even of {f2(b1)} bp"
+        if np.isfinite(b0) and not np.isfinite(b1):
+            return f"leaves {n} with no break-even"
+        return f"moves {n}'s break-even from {f2(b0)} to {f2(b1)} bp"
+
+    rd = []
+    rd.append("# etf-mm-europe")
+    rd.append("")
+    rd.append("A two-way quote on four UCITS S&P 500 ETF lines, priced from the E-mini and hedged in it, replayed on 1-minute bars in a Python package (`etfmm`): "
+              "a fair value from ES, the creation/redemption bound, the quoter with a P&L attribution, and a positions monitor. "
+              "The lines are CSPX, VUAA and VUSA on the LSE and SXR8 on Xetra. All data is free and checked in.")
+    rd.append("")
+    rd.append("The question: how wide must the quote be to clear the creation bound and the hedge, and what does a fill earn?")
+    rd.append("")
+    rd.append("## Results")
+    rd.append("")
+    rd.append(f"- **Fair value.** Over {days} days of 1-minute bars ({date0} to {date1}) the lines trade {f2(sd_range[0])}–{f2(sd_range[1])} bp (sd) around the fair value implied by ES. "
+              f"They close {f2(min(nav_vals))}–{f2(max(nav_vals))} bp above their NAV-implied fair, so the quoter centres on each line's own closes.")
+    rd.append(f"- **Break-even.** With quotes fixed for the minute, and a fill only when a bar trades through the quote, {be_txt}. "
+              f"The one-unit creation bound is {f2(bound_range[0])} to {f2(bound_range[1])} bp, so {clears_txt}.")
+    rd.append(f"- **Adverse selection.** {pnl_txt}: it captures {f2(cap_range[0])}–{f2(cap_range[1])} bp and gives {f2(-slip_range[1])}–{f2(-slip_range[0])} bp back before the hedge "
+              f"a minute later, because a bar that trades through a quote is mostly a bar in which the index moved. {track_txt} A quoter re-pricing on every ES tick sits between the two.")
+    if fxf:
+        rd.append("- **FX.** Converting local cash once a day costs " + names(f"{n} {f2(-comp[n]['fx'])} bp" for n in fxf) + " per fill, since the quoter's flow runs against "
+                  "the day's spot move. Converting every fill instead " + " but ".join(fx_move(n) for n in fxf) + ": the FX policy is a per-line choice.")
+    rd.append(f"- **Monitor.** The positions monitor catches {mon['overall_detection_rate']:.0%} of planted faults ({len(mon['by_fault'])} kinds) within "
+              f"{mon['limits']['detect_window_minutes']} minutes, with {mon['clean_alerts_per_day']:.2f} false alerts per clean line-day.")
+    rd.append("")
+    rd.append(f"| line | venue | break-even, fixed quotes (bp) | break-even, quotes follow ES (bp) | one-unit bound (bp) | P&L per fill at {base_h} bp (bp) |")
+    rd.append("|---|---|---|---|---|---|")
+    for n in L:
+        r = be[n]
+        rd.append(f"| {n} | {prem.loc[n, 'venue']}, {prem.loc[n, 'currency']} | {f2(r['breakeven_bp'])} {ci(r)} | {f2(track[n])} | {f2(r['bound_one_unit_bp'])} | {f2(r.get('base_pnl_bp'))} |")
+    rd.append("")
+    rd.append("![pnl](figures/pnl_curve.png)")
+    rd.append("![replay](figures/replay_day.png)")
+    rd.append("")
+    rd.append("All numbers are in `results/summary.md`; the detail is in [docs/method.md](docs/method.md).")
+    rd.append("")
+    rd.append("## How it works")
+    rd.append("")
+    rd.append("$$E^* = \\frac{I_{\\mathrm{fair}}}{\\kappa X}, \\qquad I_{\\mathrm{fair}} = \\frac{F + D}{1 + r\\tau}\\,(1 - \\rho_c)$$")
+    rd.append("")
+    rd.append("$$\\mathrm{bid},\\ \\mathrm{ask} = E^*\\,(1 - s\\,q)\\,(1 \\mp h)$$")
+    rd.append("")
+    rd.append("- **Data.** Yahoo 1-minute bars for the lines, ES and FX over the trailing 30 days (archived on each run), daily bars since 2019, Treasury, SOFR, €STR and SONIA rates, "
+              "and the issuers' NAVs and prospectuses.")
+    rd.append("- **Fair value.** $E^*$ is a line's fair price: the index implied by the E-mini $F$ with bill financing $r$ and dividends $D$ (from "
+              "[delta-one-basis](https://github.com/m-ichaels/delta-one-basis)), less the contract's richness $\\rho_c$ to the cash index, over the fund/index ratio $\\kappa$ and the spot rate $X$.")
+    rd.append(f"- **Quoter.** Quotes skew by $s$ = {q['skew_bp_per_clip']:g} bp per clip of inventory $q$ and are pulled on stale inputs or fast markets. A quote fills when a bar trades "
+              f"{through} through it, and each fill is hedged in whole E-minis at the next bar. P&L splits exactly into capture, hedge slippage, FX, inventory and fees.")
+    rd.append("- **Bound and break-even.** The bound adds the creation fee per unit, the basket half-spread, the hedge, an FX conversion and a day of T+2/T+1 settlement financing. "
+              "The break-even is where P&L per fill crosses zero, with a block bootstrap over days.")
+    rd.append("- **Monitor.** Position, delta, FX exposure and P&L by minute, with rules scored against faults planted in real days.")
+    rd.append("")
+    rd.append("## Limitations")
+    rd.append("")
+    rd.append("- One-minute bars are not a tick book: queue position is unknown, so the result is a bracket, not a point.")
+    rd.append(f"- {days} quoting days: wide intervals, one contract roll and no stress day.")
+    rd.append("- The creation fee and the iShares unit size are not published, and the basket cost is assumed; `docs/method.md` shows how far they move the bound.")
+    rd.append("- The faulted monitor days are simulated.")
+    rd.append("")
+    rd.append("## Run")
+    rd.append("")
+    rd.append("```")
+    rd.append("pip install -e .[test]")
+    rd.append(f"python -m pytest                      # {count_tests()} tests")
+    rd.append("scripts/run_all.sh --skip-download    # the pipeline on the checked-in data")
+    rd.append("```")
+    rd.append("")
+    rd.append("The README and `docs/method.md` are written by `scripts/readme.py` from `results/`. CI runs the pipeline on the checked-in data and checks both against the results.")
+
+    # ---- docs/method.md: the detail and every table
     md = []
-    md.append("# etf-mm-europe — a futures-hedged two-way quote on UCITS S&P 500 ETF lines: the spread that clears the creation bound, and what a fill earns")
+    md.append("# etf-mm-europe: method and full results")
     md.append("")
-    md.append("**Question.** A market maker quotes a UCITS S&P 500 ETF on the London and Frankfurt order books and hedges every fill in the E-mini, "
-              "with the FX leg hedged daily. How wide must the two-way quote be to clear the creation/redemption arbitrage bound and the hedge cost, "
-              "and what does the quoter earn per fill, by line (CSPX and VUAA in USD on the LSE, VUSA in GBP on the LSE, SXR8 in EUR on Xetra)?")
+    md.append("The detail behind the [README](../README.md). Every number here is written by `scripts/readme.py` from the files in `results/`.")
     md.append("")
-    md.append(f"**Answer (§Results).** On {days} days of 1-minute bars ({date0} to {date1}), with quotes fixed for each minute and a fill only when the bar trades "
-              f"one tick through the quote (the pessimistic reading of a bar), the break-even half-spread is " + "; ".join(hl) + ". "
-              f"The one-unit bound is {f2(bound_range[0])}–{f2(bound_range[1])} bp (fixed fee amortised over one unit, basket half-spread, E-mini half-tick and fee, one FX conversion for the GBP and EUR lines, one day of T+2/T+1 settlement financing) "
-              f"and {f2(bound10[0])}–{f2(bound10[1])} bp over ten units; the hedge cost alone is {f2(list(bound_hedge.values())[0], 2)} bp. "
-              f"With fixed quotes {n_clear_fixed} of the 4 lines {'clears' if n_clear_fixed == 1 else 'clear'} the one-unit bound; with quotes that track ES inside the bar {n_clear_track} of 4 do. "
-              f"At the base half-spread of {base_h} bp the fixed-quote book loses {f2(-max(base_pnl.values()))} to {f2(-min(base_pnl.values()))} bp per fill: it captures "
-              f"{f2(cap_range[0])}–{f2(cap_range[1])} bp against the fair at the fill and gives {f2(-slip_range[1])}–{f2(-slip_range[0])} bp back between the fill and the hedge one minute later, "
-              f"because a bar that trades through a quote is mostly a bar in which the index moved. The lines sit within {f2(sd_range[0])}–{f2(sd_range[1])} bp (sd) of the ES-implied fair, "
-              f"{f2(wsd_range[0])}–{f2(wsd_range[1])} bp within the day, and close {f2(min(v for v in nav_prem.values() if v is not None))}–{f2(max(v for v in nav_prem.values() if v is not None))} bp rich to the issuer's NAV-fair where a NAV exists. "
-              f"The monitor's fault-injection score is {mon['overall_detection_rate']:.0%} detection within {mon['limits']['detect_window_minutes']} minutes with {mon['clean_alerts_per_day']:.2f} alerts per clean line-day.")
+    md.append("## Findings")
     md.append("")
-    md.append("- *Fair value.* $E^* = I_{\\mathrm{fair}} / (\\kappa_d X)$: the E-mini with the cost of carry removed and the quarter's dividend accrual added back (the vendored "
+    md.append("- **Fair value.** $E^* = I_{\\mathrm{fair}} / (\\kappa_d X)$: the E-mini with the cost of carry removed and the quarter's dividend accrual added back (the vendored "
               f"model), less the contract's richness to the cash index ({', '.join(f'{k}: {v:+.1f} bp' for k, v in fv['richness_by_contract_bp'].items())}; the September contract's two "
               f"weeks of carry and the December contract's three months are both measured, not assumed), divided by the fund/index ratio struck from the previous closes "
               f"and by the spot rate. Yahoo's continuous ES=F switched from the {sw['from_expiry']} to the {sw['to_expiry']} contract at {sw['ts'][:16]} UTC "
               f"(a {sw['one_minute_return_bp']:.0f} bp one-minute jump that the cash index confirms); every bar carries its own contract and the hedge rolls there.")
-    md.append(f"- *Premium.* The four lines are within {f2(sd_range[0])}–{f2(sd_range[1])} bp (sd) of fair at the minute and {f2(prem.share_abs_gt_5bp.min() * 100, 0)}–{f2(prem.share_abs_gt_5bp.max() * 100, 0)} % of minutes are more than 5 bp away; "
+    md.append(f"- **Premium.** The four lines are within {f2(sd_range[0])}–{f2(sd_range[1])} bp (sd) of fair at the minute and {f2(prem.share_abs_gt_5bp.min() * 100, 0)}–{f2(prem.share_abs_gt_5bp.max() * 100, 0)} % of minutes are more than 5 bp away; "
               f"the premium to the issuer's NAV is persistent: CSPX closes a median {f2(nav_prem['CSPX'])} bp and SXR8 {f2(nav_prem['SXR8'])} bp above NAV-fair over the {fv['lines']['CSPX']['nav_days_available']} NAV days, "
               f"so a quoter centred on NAV would be sold to all day — the quoter here centres on where the line itself closed (kappa from the closing prints), and the `kappa=nav` row of the sensitivity table shows the cost of centring on NAV.")
-    fxf = {n: S(n, "fx_hedge=fill") for n in L if lines[n]["currency"] != "USD" and len(sens[(sens.line == n) & (sens.case == "fx_hedge=fill")])}
-    gridf = pd.read_csv(os.path.join(R, "quoter_grid.csv"))
-    fx_fill_bp = {n: float(gridf[(gridf.line == n) & (gridf.case == "fx_hedge=fill") & (gridf.h == base_h)].fx_bp.iloc[0]) for n in fxf}
     if fxf:
-        md.append(f"- *FX.* Hedging the FX leg once a day costs the GBP and EUR lines " + " and ".join(f"{f2(-comp[n]['fx'])} bp per fill ({n})" for n in fxf) + f" at h = {base_h}: the quoter's net flow runs against the day's spot move "
+        md.append(f"- **FX.** Hedging the FX leg once a day costs the GBP and EUR lines " + " and ".join(f"{f2(-comp[n]['fx'])} bp per fill ({n})" for n in fxf) + f" at h = {base_h}: the quoter's net flow runs against the day's spot move "
                   "(daily FX P&L against net flow x spot change is negatively correlated on both lines), so the local cash it holds until the conversion is on the wrong side of it. Converting each fill's cash at the next bar instead pays the conversion spread on every fill: "
                   + "; ".join(f"on {n} the FX component at h = {base_h} goes from {f2(comp[n]['fx'])} to {f2(fx_fill_bp[n])} bp and the break-even from {f2(be[n]['breakeven_bp'])} to {f2(fxf[n].breakeven_bp)} bp" for n in fxf)
                   + " — it removes the exposure on the thin EUR line and only adds cost on the busy GBP line, so the FX policy is a per-line choice, not a rule.")
-    md.append(f"- *Attribution.* Per fill at h = {base_h} bp: " + "; ".join(f"{n}: capture {f2(comp[n]['capture'])}, hedge slippage {f2(comp[n]['hedge_slip'])}, FX {f2(comp[n]['fx'])}, inventory {f2(comp[n]['inventory'])}, fees {f2(comp[n]['fees'])}, total {f2(qs[n]['pnl_bp'])} bp ({qs[n]['n_fills']} fills, {f2(qs[n]['pnl_per_fill_usd'], 0)} USD per fill)" for n in L) + ". "
+    md.append(f"- **Attribution.** Per fill at h = {base_h} bp: " + "; ".join(f"{n}: capture {f2(comp[n]['capture'])}, hedge slippage {f2(comp[n]['hedge_slip'])}, FX {f2(comp[n]['fx'])}, inventory {f2(comp[n]['inventory'])}, fees {f2(comp[n]['fees'])}, total {f2(qs[n]['pnl_bp'])} bp ({qs[n]['n_fills']} fills, {f2(qs[n]['pnl_per_fill_usd'], 0)} USD per fill)" for n in L) + ". "
               "The identity cash + inventory at the closing mark = capture + slippage + FX + inventory + fees holds to 1e-6 USD on every run.")
-    md.append(f"- *The two brackets.* With quotes fixed for the minute, a fill is a stale quote hit after the index moved: the quoter captures the half-spread against the bar-start fair and gives most of it back before the hedge (hedge slippage {f2(slip_range[0])} to {f2(slip_range[1])} bp per fill at h = {base_h}). "
+    md.append(f"- **The two brackets.** With quotes fixed for the minute, a fill is a stale quote hit after the index moved: the quoter captures the half-spread against the bar-start fair and gives most of it back before the hedge (hedge slippage {f2(slip_range[0])} to {f2(slip_range[1])} bp per fill at h = {base_h}). "
               f"With quotes that follow the ES bar's range (`quotes_track_es`), every fill is at the minute's extreme and the mark then reverts towards the close, so the slippage turns positive and the break-even falls to the bottom of the grid; that is the optimistic reading. "
-              f"A quoter re-pricing on every ES tick with a known queue position lies between the two columns; the bars cannot place it, and §Limits says so. The end-of-day choice (carry the hedged inventory, flatten at the close, redeem at NAV less the one-unit bound), the hedge delay, the inventory skew and the participation cap move the break-even less than the fill rule does (§Results).")
+              f"A quoter re-pricing on every ES tick with a known queue position lies between the two columns; the bars cannot place it, and §Limitations says so. The end-of-day choice (carry the hedged inventory, flatten at the close, redeem at NAV less the one-unit bound), the hedge delay, the inventory skew and the participation cap move the break-even less than the fill rule does (§Results).")
     md.append("")
     md.append(f"Data checked {fv['generated'][:10]}. Python package `etfmm` (numpy/pandas), {count_tests()} tests, CI runs the pipeline on the checked-in data. The faulted monitor days are simulated and said so; everything else is the replay on Yahoo's bars. "
               "1-minute bars are not a tick book: the quoter re-prices once a minute (or follows the ES bar's range in the tracking case), queue position is unknown, and the sample is 30 calendar days.")
@@ -150,11 +238,12 @@ scripts/                build_fair.py, run_bound.py, run_quoter.py, run_monitor.
 configs/                lines.json (the four lines), params.json (every assumption), sources.json (the documents each fact came from)
 tests/                  known-answer tests on small fixtures
 data/reference/         daily bars, dividends, rates, issuer files;  data/intraday/  the 1-minute archive;  data/derived/  frames, fills, paths
-results/                summary.md and the machine-written files the README is built from;  figures/  the png files
+docs/method.md          this page, written with the README by scripts/readme.py
+results/                summary.md and the machine-written files the README and this page are built from;  figures/  the png files
 ```""")
     md.append("")
     md.append("Install: `pip install -e .[test]`; `python -m pytest`; `scripts/run_all.sh [--skip-download] [--fast]` (download, fair value, bound, quoter, monitor, figures, summary, README, tests; "
-              f"about {int(run['seconds'] // 60) + 2} minutes after the downloads). `python scripts/readme.py --check` fails CI when the README no longer matches the results.")
+              f"about {int(run['seconds'] // 60) + 2} minutes after the downloads). `python scripts/readme.py --check` fails CI when the README or this page no longer matches the results.")
     md.append("")
     md.append("---")
     md.append("")
@@ -191,7 +280,6 @@ results/                summary.md and the machine-written files the README is b
     md.append("")
     md.append("**Contract.** Each ES bar's expiry is the calendar front for its New York date; inside expiry week a one-minute move larger than 40 bp whose level persists marks the switch to the next contract (confirmed here by the ratio to the cash index). Before the switch $F$ is back-adjusted by the switch ratio ($F_{\\mathrm{cont}}$) so marks are continuous; a hedge held across it pays two half-spreads and two fees per contract.")
     md.append("")
-    q = params["quoter"]
     md.append(f"**Quoter.** At bar $t$: $m = E^*(1 - s\\,q/\\mathrm{{clip}}/10^4)$ with skew $s$ = {q['skew_bp_per_clip']} bp per clip of inventory; bid $= \\lfloor m(1 - h/10^4)\\rfloor_{{\\mathrm{{tick}}}}$, ask $= \\lceil m(1 + h/10^4)\\rceil_{{\\mathrm{{tick}}}}$; clip = one E-mini's worth of shares ($50F/E^*_{{\\mathrm{{USD}}}}$), the fill capped at {q['max_participation']:.0%} of the bar's volume. "
               f"No quotes in the first and last {q['skip_open_minutes']} minutes, when the last ES or FX bar is older than {q['stale_minutes']} minutes, or when ES moved more than {q['fast_market_bp']} bp over the previous bar; one side only at {q['max_inventory_clips']:.0f} clips. "
               f"**Fill rule:** the bid fills if the bar's low is at or below bid − {q['through_ticks']} tick (the price traded through the quote; the pessimistic reading of a bar with no queue information), the ask if the high is at or above ask + {q['through_ticks']} tick; the fill is at the quote. "
@@ -214,7 +302,7 @@ results/                summary.md and the machine-written files the README is b
     md.append("")
     md.append("### Where the lines trade against fair")
     md.append("")
-    md.append("![premium](figures/premium.png)")
+    md.append("![premium](../figures/premium.png)")
     md.append("")
     md.append("*Figure 1. Left: the premium of each line's 1-minute close to the ES-implied fair (continuous trading). Right: by time of day; the US cash open at 14:30 London is shaded.*")
     md.append("")
@@ -228,9 +316,9 @@ results/                summary.md and the machine-written files the README is b
     md.append("")
     md.append("### The bound and the break-even")
     md.append("")
-    md.append("![pnl](figures/pnl_curve.png)")
+    md.append("![pnl](../figures/pnl_curve.png)")
     md.append("")
-    md.append("*Figure 2. Left: P&L per fill (bp of fill notional) against the half-spread, fixed quotes, with the 95 % block-bootstrap band; dotted verticals are each line's one-unit bound. Right: total P&L over the sample, which falls as the quote widens and the fills dry up.*")
+    md.append("*Figure 2. Left: P&L per fill (bp of fill notional) against the half-spread, fixed quotes, with the 95 % block-bootstrap band; dotted verticals are each line's one-unit bound. The panel stops at 8 bp, beyond which the fills thin out; the full grid is listed under §What a fill earns. Right: total P&L over the sample, which falls as the quote widens and the fills dry up.*")
     md.append("")
     md.append(f"| line | break-even h* fixed quotes (bp) | 95 % CI | h* quotes track ES | 95 % CI | bound 1 unit | bound 10 units | hedge cost | P&L/fill at h = {base_h} | fills at h = {base_h} | clears the one-unit bound (fixed / tracking) |")
     md.append("|---|---|---|---|---|---|---|---|---|---|---|")
@@ -248,7 +336,7 @@ results/                summary.md and the machine-written files the README is b
     md.append("")
     md.append("### What a fill earns")
     md.append("")
-    md.append("![replay](figures/replay_day.png)")
+    md.append("![replay](../figures/replay_day.png)")
     md.append("")
     md.append(f"*Figure 3. One day of CSPX: last trade, fair, the quoter's bid and ask at h = {base_h} bp, fills, inventory and the E-mini hedge.*")
     md.append("")
@@ -267,7 +355,7 @@ results/                summary.md and the machine-written files the README is b
     md.append("")
     md.append("### Sensitivity")
     md.append("")
-    md.append("![sensitivity](figures/sensitivity.png)")
+    md.append("![sensitivity](../figures/sensitivity.png)")
     md.append("")
     md.append(f"*Figure 4. Break-even half-spread by case, with bootstrap intervals; 'none' where the curve never crosses zero on the grid.*")
     md.append("")
@@ -283,7 +371,7 @@ results/                summary.md and the machine-written files the README is b
     md.append("")
     md.append("### Monitoring")
     md.append("")
-    md.append("![monitor](figures/monitor.png)")
+    md.append("![monitor](../figures/monitor.png)")
     md.append("")
     md.append(f"*Figure 5. Left and middle: the monitor table of {mon['example_line']} on {mon['example_day']} (position, net delta, flow, day P&L, alerts). Right: fault-injection detection rates and median delays.*")
     md.append("")
@@ -304,7 +392,7 @@ results/                summary.md and the machine-written files the README is b
     md.append("- Bound and statistics: the bound arithmetic by component and the amortisation of the fixed fee; the break-even interpolation; the bootstrap recovers a known break-even and is reproducible; tick inference on float32 prices with 5 % off-grid prints; session minutes and the US cash window.")
     md.append("- Monitor: a clean synthetic day raises no alert; each of the nine faults is caught by its rule; the reconciliation fires only for the phantom fill.")
     md.append("")
-    md.append("## Limits, stated")
+    md.append("## Limitations")
     md.append("")
     md.append("- **1-minute bars are not a tick book.** A quote fixed for a minute is a one-minute-latency market maker; the bar cannot say whether the ETF's low was a taker hitting a stale quote or the whole market moving, and the trade-through rule treats every fill as the latter. The `quotes_track_es` case brackets the other side; the truth for a quoter re-pricing on every ES tick with a real queue position lies between the two columns and needs the order book.")
     md.append(f"- **30 calendar days, {days} quoting days.** The intervals are wide and the sample holds one contract switch, one Vanguard ex-date and no stress day. Yahoo keeps 30 days of 1-minute bars; the archive grows each day the downloader runs.")
@@ -333,8 +421,7 @@ results/                summary.md and the machine-written files the README is b
     md.append("- Petajisto, A. (2017). Inefficiencies in the pricing of exchange-traded funds. *Financial Analysts Journal* 73(1) — ETF premiums against a fair value.")
     md.append("- iShares VII plc Prospectus; Vanguard Funds plc Prospectus (2 June 2026); Vanguard notice to shareholders (16 January 2023); LSE MIT201 Guide to the Trading System (Issue 15.6); Deutsche Börse Trading Parameters Xetra (1 December 2025); Commission Delegated Regulation (EU) 2017/588 (RTS 11) — `configs/sources.json`.")
     md.append("- m-ichaels/delta-one-basis (vendored fair value and loader) and m-ichaels/futures-desk-analytics (the attribution identity and the fault-injection pattern) — `etfmm/vendor/NOTICE`.")
-    md.append("")
-    return "\n".join(md) + "\n"
+    return "\n".join(rd) + "\n", "\n".join(md) + "\n"
 
 
 def count_tests() -> int:
@@ -347,17 +434,23 @@ def count_tests() -> int:
 
 
 def main(argv):
-    text = build()
-    path = os.path.join(ROOT, "README.md")
+    texts = dict(zip(OUT, build()))
     if "--check" in argv:
-        cur = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
-        if cur != text:
-            print("README.md differs from the regenerated text")
+        stale = []
+        for rel, text in texts.items():
+            path = os.path.join(ROOT, rel)
+            cur = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
+            if cur != text:
+                stale.append(rel)
+        if stale:
+            print(" and ".join(stale), "differ from the regenerated text")
             sys.exit(1)
-        print("README.md matches the results")
+        print("README.md and docs/method.md match the results")
         return
-    open(path, "w", encoding="utf-8").write(text)
-    print("README.md written", len(text), "chars")
+    os.makedirs(os.path.join(ROOT, "docs"), exist_ok=True)
+    for rel, text in texts.items():
+        open(os.path.join(ROOT, rel), "w", encoding="utf-8").write(text)
+        print(rel, "written", len(text), "chars")
 
 
 if __name__ == "__main__":

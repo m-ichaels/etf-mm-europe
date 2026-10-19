@@ -10,7 +10,7 @@ jobs:
           python-version: "3.12"
       - run: pip install -e .[test]
       - run: python -m pytest
-      - name: README matches the committed results
+      - name: README and docs/method.md match the committed results
         run: python scripts/readme.py --check
       - name: smoke-run the pipeline on the checked-in data (fast modes; not compared with the README)
         env:

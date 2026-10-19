@@ -12,7 +12,7 @@ Issuer files      iShares Core S&P 500 UCITS ETF (CSPX / SXR8 are one fund, IE00
                   Vanguard S&P 500 UCITS ETF (VUSA IE00B3XXRP09, VUAA IE00BFMXXD54): the latest NAV and the short price table of
                   the server-rendered professional product pages -> issuer/VUSA_page_nav.parquet, VUAA_page_nav.parquet.
                   Each attempt and its outcome is written to data/reference/issuer_status.json; where a NAV history is missing
-                  the pipeline strikes the fund/index ratio from the line's own closing prints (stated per line in the README).
+                  the pipeline strikes the fund/index ratio from the line's own closing prints (stated per line in docs/method.md).
 """
 from __future__ import annotations
 

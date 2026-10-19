@@ -58,10 +58,14 @@ def fig_pnl_curve(lines):
         g = pd.DataFrame(r["grid"])
         axes[1].plot(g.h, g.pnl_usd / 1e3, marker="o", ms=3, color=COLORS[name], label=name)
     axes[0].axhline(0, color="k", lw=0.8)
+    # wider quotes fill too rarely to read and their bands would set the scale; the full grid is in the method page
+    shown = [p for name in lines for x, p in zip(be[name]["h"], be[name]["pnl_bp"]) if x <= 8]
+    axes[0].set_xlim(0, 8.5)
+    axes[0].set_ylim(min(shown) - 1.5, max(shown) + 1.5)
     axes[0].set_xlabel("half-spread h (bp)")
     axes[0].set_ylabel("P&L per fill (bp of fill notional), 95% block-bootstrap band")
     axes[0].set_title("P&L per fill against the half-spread; dotted: one-unit creation bound")
-    axes[0].legend(fontsize=7.5)
+    axes[0].legend(fontsize=7.5, loc="upper left")
     axes[1].axhline(0, color="k", lw=0.8)
     axes[1].set_xlabel("half-spread h (bp)")
     axes[1].set_ylabel("total P&L over the sample (kUSD)")
